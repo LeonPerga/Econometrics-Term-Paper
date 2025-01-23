@@ -4,7 +4,7 @@ library("lmtest")
 library("sandwich")
 library("whitestrap")
 data <- read.csv("term_paper_data.csv")
-
+#check commit
 sfp = filter(data, sfp_signup == 1)
 ssp = filter(data, ssp_signup == 1)
 control = filter(data, control == 1)
