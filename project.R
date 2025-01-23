@@ -3,6 +3,7 @@ library("dplyr")
 library("lmtest")
 library("sandwich")
 library("whitestrap")
+library("car")
 data <- read.csv("term_paper_data.csv")
 #check commit
 sfp = filter(data, sfp_signup == 1)
@@ -49,6 +50,7 @@ white_test(model2)
 model3 = lm(first_sem_grade ~ ssp_signup +sfp_signup + HS_GPA + age + female + english + dad_HS_grad + dad_college_grad 
             + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans, filtered_data)
 summary(model3)
+
 #Homoscedasticity is not preserved in the regression 
 white_test(model3)
 coeftest(model3, vcov = vcovHC(model3, type = "HC1"))
