@@ -32,3 +32,4 @@ model1_cor = lm(ssp_signup ~ HS_GPA + age + female + english + dad_HS_grad + dad
 coeftest(model1_cor, vcov = vcovHC(model1_cor, type = "HC1"))
 
 #Testing Push - 1/23/2025
+#Testing Push from Rstudio - 1/23/2025 12:48 PM
