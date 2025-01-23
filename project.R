@@ -55,4 +55,7 @@ linearHypothesis(model3, c("HS_GPA = 0", "age = 0"))
 white_test(model3)
 coeftest(model3, vcov = vcovHC(model3, type = "HC1"))
 #P3Q6
-
+# The null hypothesis H0: ssp_signup = sfp_signup
+# The alternative hypothesis H1 : ssp_signup != sfp_signup
+linearHypothesis(model3, c("ssp_signup = sfp_signup"))
+# F statistic is 0.34, we will not reject the null hypothesis at a = 0.1, ssp_signup = sfp_signup
