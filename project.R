@@ -59,3 +59,16 @@ coeftest(model3, vcov = vcovHC(model3, type = "HC1"))
 # The alternative hypothesis H1 : ssp_signup != sfp_signup
 linearHypothesis(model3, c("ssp_signup = sfp_signup"))
 # F statistic is 0.34, we will not reject the null hypothesis at a = 0.1, ssp_signup = sfp_signup
+
+#P3Q7
+model4 = lm(GPA_year1 ~ ssp_signup +sfp_signup + HS_GPA + age, filtered_data)
+summary(model4)
+model5 = lm(GPA_year2 ~ ssp_signup +sfp_signup + HS_GPA + age, filtered_data)
+summary(model5)
+
+affects_table = 
+  data.frame(Treatment = c("SSP", "SFP"), Fall_Semester = 
+               c(unname(model3$coefficients[2]), unname(model3$coefficients[3])),
+                 Year_1 = c(unname(model4$coefficients[2]), unname(model4$coefficients[3])),
+                 Year_2 = c(unname(model5$coefficients[2]), unname(model5$coefficients[3])))
+affects_table
