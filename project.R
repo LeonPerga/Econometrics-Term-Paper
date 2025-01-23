@@ -26,11 +26,31 @@ ssp_offer = filter(data, ssp_offer == 1)
 model1 = lm(ssp_signup ~ HS_GPA + age + female + english + dad_HS_grad + dad_college_grad 
             + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans, ssp_offer)
 coeftest(model1, vcov = vcovHC(model1, type = "HC1"))
+
+
+#correction for age
 ssp_offer_cor = filter(ssp_offer, age > 17 & age < 20)
 model1_cor = lm(ssp_signup ~ HS_GPA + age + female + english + dad_HS_grad + dad_college_grad 
             + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans, ssp_offer_cor)
 coeftest(model1_cor, vcov = vcovHC(model1_cor, type = "HC1"))
 
-#Testing Push - 1/23/2025
-#Testing Push from Rstudio - 1/23/2025 12:48 PM
-#Testing Push 13:10 PM
+#P3Q4
+
+#first we must filter out the students who were offered to take part in the program but didnt so we could properly isolate the control group
+
+filtered_data = filter(data, sfp_offer == sfp_signup | ssp_offer == sfp_signup)
+model2 = lm(first_sem_grade ~ ssp_signup + sfp_signup, filtered_data)
+summary(model2)
+#Homoscedasticity is preserved in the regression 
+white_test(model2)
+
+#P3Q5
+
+model3 = lm(first_sem_grade ~ ssp_signup +sfp_signup + HS_GPA + age + female + english + dad_HS_grad + dad_college_grad 
+            + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans, filtered_data)
+summary(model3)
+#Homoscedasticity is not preserved in the regression 
+white_test(model3)
+coeftest(model3, vcov = vcovHC(model3, type = "HC1"))
+#P3Q6
+
