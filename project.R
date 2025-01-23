@@ -47,12 +47,10 @@ white_test(model2)
 
 #P3Q5
 
-model3 = lm(first_sem_grade ~ ssp_signup +sfp_signup + HS_GPA + age + female + english + dad_HS_grad + dad_college_grad 
-            + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans, filtered_data)
+model3 = lm(first_sem_grade ~ ssp_signup +sfp_signup + HS_GPA + age, filtered_data)
 summary(model3)
-linearHypothesis(model3, c("HS_GPA = 0", "age = 0", "female = 0", "english = 0", "dad_HS_grad = 0","dad_college_grad = 0",
-                           "mom_HS_grad = 0", "mom_college_grad = 0", "uni_first_choice = 0", "finish_in_4_yrs = 0", 
-                           "grad_degree= 0", "live_home=0", "work_plans=0")) 
+cov(data$ssp_offer, data$HS_GPA)
+linearHypothesis(model3, c("HS_GPA = 0", "age = 0"))
 #Homoscedasticity is not preserved in the regression 
 white_test(model3)
 coeftest(model3, vcov = vcovHC(model3, type = "HC1"))
