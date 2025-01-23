@@ -33,3 +33,4 @@ coeftest(model1_cor, vcov = vcovHC(model1_cor, type = "HC1"))
 
 #Testing Push - 1/23/2025
 #Testing Push from Rstudio - 1/23/2025 12:48 PM
+#Testing Push 13:10 PM
