@@ -4,23 +4,40 @@ library("lmtest")
 library("sandwich")
 library("whitestrap")
 library("car")
+library("stargazer")
 data <- read.csv("term_paper_data.csv")
 #check commit
-sfp = filter(data, sfp_signup == 1)
-ssp = filter(data, ssp_signup == 1)
-control = filter(data, control == 1)
+sfp = filter(data[,2:ncol(data)], sfp_offer == 1)
+ssp = filter(data[,2:ncol(data)], ssp_offer == 1)
+control = filter(data[,2:ncol(data)], control == 1)
 
 #NOTE: first column is student id and is not a metric
 sfp_means = colMeans(sfp)
 names(sfp_means) = names(sfp)
 ssp_means = colMeans(ssp)
 names(ssp_means) = names(ssp)
+descriptions <- c(
+  "ממוצע ציונים בתיכון",
+  "גיל",
+  "משתנה דמי לאישה",
+  "שפת אם של האם היא אנגלית",
+  "אב בוגר תיכון",
+  "אב בוגר אוניברסיטה",
+  "אם בוגרת תיכון",
+  "אם בוגרת אוניברסיטה",
+  "לומד באוניברסיטה שנבחרה כעדיפות ראשונה",
+  "מתכנן לסיים את התואר תוך 4 שנים",
+  "מעוניין בתואר מעבר לתואר ראשון",
+  "גר בבית ההורים",
+  "מתכנן לעבוד בזמן הלימודים"
+)
 control_means = colMeans(control)
 names(control_means) = names(control)
 mean(sfp$GPA_year1)
-sfp_means
-ssp_means
-control_means
+means_table = cbind(t(t(sfp_means)), t(t(ssp_means)), t(t(control_means)))
+means_table = cbind(descriptions, means_table)
+colnames(means_table) = c("descriptions", "SFP", "SSP", "Control")
+stargazer(means_table, type = "text", title = "means_table", digits = 4, out = "Means_Table.html")
 
 #P2Q3
 model1 = lm(ssp_offer ~ HS_GPA + age + female + english + dad_HS_grad + dad_college_grad 
