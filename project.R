@@ -39,15 +39,14 @@ coeftest(model1_cor, vcov = vcovHC(model1_cor, type = "HC1"))
 
 #first we must filter out the students who were offered to take part in the program but didnt so we could properly isolate the control group
 
-filtered_data = filter(data, sfp_offer == sfp_signup | ssp_offer == sfp_signup)
-model2 = lm(first_sem_grade ~ ssp_signup + sfp_signup, filtered_data)
+model2 = lm(first_sem_grade ~ ssp_signup + sfp_signup, data)
 summary(model2)
 #Homoscedasticity is preserved in the regression 
 white_test(model2)
 
 #P3Q5
 
-model3 = lm(first_sem_grade ~ ssp_signup +sfp_signup + HS_GPA + age, filtered_data)
+model3 = lm(first_sem_grade ~ ssp_signup +sfp_signup + HS_GPA + age, data)
 summary(model3)
 cov(data$ssp_offer, data$HS_GPA)
 linearHypothesis(model3, c("HS_GPA = 0", "age = 0"))
