@@ -7,7 +7,11 @@ library("car")
 library("stargazer")
 data <- read.csv("term_paper_data.csv")
 #check commit
-sfp = filter(data[,2:ncol(data)], sfp_offer == 1)
+data[, c(4, 2)]
+options(digits = 2)
+
+data[, background_cols]
+sfp = filter(data[,c(4, 3, )], sfp_offer == 1)
 ssp = filter(data[,2:ncol(data)], ssp_offer == 1)
 control = filter(data[,2:ncol(data)], control == 1)
 
@@ -16,34 +20,42 @@ sfp_means = colMeans(sfp)
 names(sfp_means) = names(sfp)
 ssp_means = colMeans(ssp)
 names(ssp_means) = names(ssp)
+# Create a vector with the column names
+columns_to_select <- c("HS_GPA", "age", "female", "english", 
+                       "dad_HS_grad", "dad_college_grad", "mom_HS_grad", 
+                       "mom_college_grad", "uni_first_choice", "finish_in_4_yrs", 
+                       "grad_degree", "live_home", "work_plans")
+# Descriptions vector
 descriptions <- c(
-  "ממוצע ציונים בתיכון",
-  "גיל",
-  "משתנה דמי לאישה",
-  "שפת אם של האם היא אנגלית",
-  "אב בוגר תיכון",
-  "אב בוגר אוניברסיטה",
-  "אם בוגרת תיכון",
-  "אם בוגרת אוניברסיטה",
-  "לומד באוניברסיטה שנבחרה כעדיפות ראשונה",
-  "מתכנן לסיים את התואר תוך 4 שנים",
-  "מעוניין בתואר מעבר לתואר ראשון",
-  "גר בבית ההורים",
-  "מתכנן לעבוד בזמן הלימודים"
+  "ממוצע ציונים בתיכון",        # HS_GPA
+  "גיל",                        # age
+  "משתנה דמי לאישה",            # female
+  "שפת אם של האם היא אנגלית",   # english
+  "אב בוגר תיכון",              # dad_HS_grad
+  "אב בוגר אוניברסיטה",         # dad_college_grad
+  "אם בוגרת תיכון",             # mom_HS_grad
+  "אם בוגרת אוניברסיטה",        # mom_college_grad
+  "לומד באוניברסיטה שנבחרה כעדיפות ראשונה", # uni_first_choice
+  "מתכנן לסיים את התואר תוך 4 שנים", # finish_in_4_yrs
+  "מעוניין בתואר מעבר לתואר ראשון", # grad_degree
+  "גר בבית ההורים",             # live_home
+  "מתכנן לעבוד בזמן הלימודים"   # work_plans
 )
 control_means = colMeans(control)
 names(control_means) = names(control)
-mean(sfp$GPA_year1)
 means_table = cbind(t(t(sfp_means)), t(t(ssp_means)), t(t(control_means)))
+means_table = means_table[columns_to_select,]
 means_table = cbind(descriptions, means_table)
 colnames(means_table) = c("descriptions", "SFP", "SSP", "Control")
-stargazer(means_table, type = "text", title = "means_table", digits = 4, out = "Means_Table.html")
+round(means_table, 2)
+
+stargazer(means_table, type = "text", title = "means_table",  out = "Means_Table.html")
 
 #P2Q3
 model1 = lm(ssp_offer ~ HS_GPA + age + female + english + dad_HS_grad + dad_college_grad 
             + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans, data)
-coeftest(model1, vcov = vcovHC(model1, type = "HC1"))
-
+model1_fixed = coeftest(model1, vcov = vcovHC(model1, type = "HC1"))
+stargazer(model1_fixed, type = "text", title = "model1", out = "model1.html")
 #P3Q4
 
 #first we must filter out the students who were offered to take part in the program but didnt so we could properly isolate the control group
