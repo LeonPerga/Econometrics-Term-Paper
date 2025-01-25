@@ -60,6 +60,21 @@ model1 = lm(ssp_offer ~ HS_GPA + age + female + english + dad_HS_grad + dad_coll
 model1_fixed = coeftest(model1, vcov = vcovHC(model1, type = "HC1"))
 stargazer(model1_fixed, type = "text", title = "model1", out = "model1.html")
 htmlreg(model1, file = "table2.html", custom.columns = c("החותך", descriptions), digits = 2)
+linearHypothesis(model1, c(
+  "HS_GPA = 0",
+  "age = 0",
+  "female = 0",
+  "english = 0",
+  "dad_HS_grad = 0",
+  "dad_college_grad = 0",
+  "mom_HS_grad = 0",
+  "mom_college_grad = 0",
+  "uni_first_choice = 0",
+  "finish_in_4_yrs = 0",
+  "grad_degree = 0",
+  "live_home = 0",
+  "work_plans = 0"
+))
 #P3Q4
 
 #first we must filter out the students who were offered to take part in the program but didnt so we could properly isolate the control group
@@ -69,7 +84,7 @@ summary(model2)
 #Homoscedasticity is preserved in the regression 
 white_test(model2)
 htmlreg(model2, file = "P3Q4.html", custom.columns = c("Intercept", "Dummy variable for belonging to SSP group", "Dummy variable for belonging to SFP group"),
-        digits = 2, custom.model.names = c("Treatment Effects on First Year Outcomes in the Sample with Fall Grades") )
+        digits = 2, custom.model.names = c("Treatment Effects on First Year Outcomes in the Sample with Fall Grades"), custom )
 #P3Q5
 
 model3 = lm(first_sem_grade ~ ssp_signup +sfp_signup + HS_GPA + age, data)
