@@ -59,7 +59,7 @@ model1 = lm(ssp_offer ~ HS_GPA + age + female + english + dad_HS_grad + dad_coll
             + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans, data_P2Q3)
 model1_fixed = coeftest(model1, vcov = vcovHC(model1, type = "HC1"))
 stargazer(model1_fixed, type = "text", title = "model1", out = "model1.html")
-htmlreg(model1, file = "table2.html", custom.columns = c("החותך", descriptions), digits = 2, stars = c(0.001, 0.01, 0.05, 0.1))
+htmlreg(model1_fixed, file = "table2.html", custom.columns = c("החותך", descriptions), digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 1— Contrasts by treatment of SSP"))
 linearHypothesis(model1, c(
   "HS_GPA = 0",
   "age = 0",
