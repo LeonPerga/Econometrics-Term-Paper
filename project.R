@@ -5,6 +5,7 @@ library("sandwich")
 library("whitestrap")
 library("car")
 library("stargazer")
+library("texreg")
 data <- read.csv("term_paper_data.csv")
 #check commit
 data[, c(4, 2)]
@@ -49,13 +50,16 @@ means_table = cbind(descriptions, means_table)
 colnames(means_table) = c("descriptions", "SFP", "SSP", "Control")
 round(means_table, 2)
 
+
 stargazer(means_table, type = "text", title = "means_table",  out = "Means_Table.html")
 
 #P2Q3
+data_P2Q3 = subset(data, data$ssp_offer == 1 | data$control==1)
 model1 = lm(ssp_offer ~ HS_GPA + age + female + english + dad_HS_grad + dad_college_grad 
-            + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans, data)
+            + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans, data_P2Q3)
 model1_fixed = coeftest(model1, vcov = vcovHC(model1, type = "HC1"))
 stargazer(model1_fixed, type = "text", title = "model1", out = "model1.html")
+htmlreg(model1, file = "table2.html", custom.columns = c("החותך", descriptions), digits = 2)
 #P3Q4
 
 #first we must filter out the students who were offered to take part in the program but didnt so we could properly isolate the control group
@@ -64,7 +68,8 @@ model2 = lm(first_sem_grade ~ ssp_signup + sfp_signup, data)
 summary(model2)
 #Homoscedasticity is preserved in the regression 
 white_test(model2)
-
+htmlreg(model2, file = "P3Q4.html", custom.columns = c("Intercept", "Dummy variable for belonging to SSP group", "Dummy variable for belonging to SFP group"),
+        digits = 2, custom.model.names = c("Treatment Effects on First Year Outcomes in the Sample with Fall Grades") )
 #P3Q5
 
 model3 = lm(first_sem_grade ~ ssp_signup +sfp_signup + HS_GPA + age, data)
@@ -74,6 +79,9 @@ linearHypothesis(model3, c("HS_GPA = 0", "age = 0"))
 #Homoscedasticity is not preserved in the regression 
 white_test(model3)
 coeftest(model3, vcov = vcovHC(model3, type = "HC1"))
+
+
+
 #P3Q6
 # The null hypothesis H0: ssp_signup = sfp_signup
 # The alternative hypothesis H1 : ssp_signup != sfp_signup
