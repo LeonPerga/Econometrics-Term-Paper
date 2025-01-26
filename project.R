@@ -74,6 +74,11 @@ linearHypothesis(model1, c(
   "live_home = 0",
   "work_plans = 0"
 ))
+
+
+### PART 3 - ANALYSIS OF SFP & SSP TREATMENT AFFECTS ###
+########################################################
+
 #P3Q4
 
 #first we must filter out the students who were offered to take part in the program but didnt so we could properly isolate the control group
@@ -114,7 +119,8 @@ affects_table =
                  Year_1 = c(unname(model4$coefficients[2]), unname(model4$coefficients[3])),
                  Year_2 = c(unname(model5$coefficients[2]), unname(model5$coefficients[3])))
 affects_table
-
+affects_table  = t(affects_table)
+stargazer(affects_table, type = "text", title = "Affects_Table",  out = "Affects_Table.html")
 #P3Q8
 P3Q8_data = subset(data, data$sfp_offer == 1 | data$control == 1)
 
@@ -122,3 +128,21 @@ P3Q8_data = subset(data, data$sfp_offer == 1 | data$control == 1)
 P3Q8_data["abv_med"] = ifelse(P3Q8_data$HS_GPA > median(P3Q8_data$HS_GPA), 1, 0)
 model_q8 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med*sfp_offer , P3Q8_data)
 summary(model_q8)
+
+# Adding interaction dummy variable
+P3Q8_data["abv_med_sfp_offer"] = P3Q8_data$sfp_offer*P3Q8_data$abv_med
+# We can see same model as q8
+model_q82 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med_sfp_offer + HS_GPA + age , P3Q8_data)
+summary(model_q82)
+# Output model to html
+htmlreg(model_q82, file = "P3Q8.html", custom.columns = c("Intercept", "Dummy variable for belonging to SFP group", "Dummy variable for having HS GPA above median", "Interactio dummy variable", "HS GPA", "age"),
+        digits = 2, custom.model.names = c("Differemces of SFP Treatment Effects on First Year Outcomes in the Sample with Fall Grades for students with GPA above median") )
+
+# Checking hypothesis
+linearHypothesis(model_q82, c("abv_med_sfp_offer = 0"))
+
+### PART 4 - ANALYSIS OF INVOLVEMENT IN TREATMENT AFFECTS ###
+#############################################################
+
+
+
