@@ -24,7 +24,7 @@ names(ssp_means) = names(ssp)
 columns_to_select <- c("HS_GPA", "age", "female", "english", 
                        "dad_HS_grad", "dad_college_grad", "mom_HS_grad", 
                        "mom_college_grad", "uni_first_choice", "finish_in_4_yrs", 
-                       "grad_degree", "live_home", "work_plans")
+                       "grad_degree", "live_home", "work_plans", "last_min")
 # Descriptions vector
 descriptions <- c(
   "ממוצע ציונים בתיכון",        # HS_GPA
@@ -39,7 +39,8 @@ descriptions <- c(
   "מתכנן לסיים את התואר תוך 4 שנים", # finish_in_4_yrs
   "מעוניין בתואר מעבר לתואר ראשון", # grad_degree
   "גר בבית ההורים",             # live_home
-  "מתכנן לעבוד בזמן הלימודים"   # work_plans
+  "מתכנן לעבוד בזמן הלימודים",  # work_plans
+  "רמת הדחיינות של התלמיד"      #last_min
 )
 control_means = colMeans(control)
 names(control_means) = names(control)
@@ -55,7 +56,7 @@ stargazer(means_table, type = "text", title = "means_table",  out = "Means_Table
 #P2Q3
 data_P2Q3 = subset(data, data$ssp_offer == 1 | data$control==1)
 model1 = lm(ssp_offer ~ HS_GPA + age + female + english + dad_HS_grad + dad_college_grad 
-            + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans, data_P2Q3)
+            + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans + last_min, data_P2Q3)
 model1_fixed = coeftest(model1, vcov = vcovHC(model1, type = "HC1"))
 stargazer(model1_fixed, type = "text", title = "model1", out = "model1.html")
 htmlreg(model1_fixed, file = "table2.html", custom.columns = c("החותך", descriptions), digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 1— Contrasts by treatment of SSP"))
@@ -72,7 +73,8 @@ linearHypothesis(model1, c(
   "finish_in_4_yrs = 0",
   "grad_degree = 0",
   "live_home = 0",
-  "work_plans = 0"
+  "work_plans = 0",
+  "last_min = 0"
 ))
 
 
@@ -186,7 +188,9 @@ descriptions <- c(
   "מתכנן לסיים את התואר תוך 4 שנים", # finish_in_4_yrs
   "מעוניין בתואר מעבר לתואר ראשון", # grad_degree
   "גר בבית ההורים",             # live_home
-  "מתכנן לעבוד בזמן הלימודים"   # work_plans
+  "מתכנן לעבוד בזמן הלימודים",  # work_plans
+  "רמת הדחיינות של התלמיד"      #last_min
+)ם"   # work_plans
 )
 means_table = cbind(t(t(sfp_notsigned_means)), t(t(sfp_signed_means)))
 means_table = means_table[columns_to_select,]
