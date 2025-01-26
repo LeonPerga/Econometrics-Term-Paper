@@ -144,5 +144,20 @@ linearHypothesis(model_q82, c("abv_med_sfp_offer = 0"))
 ### PART 4 - ANALYSIS OF INVOLVEMENT IN TREATMENT AFFECTS ###
 #############################################################
 
+#Q9
+mean_accepted = colMeans(filter(data, sfp_offer == 1))
+mean_rejected = colMeans(filter(data, sfp_offer == 0))
+names(mean_accepted) = names(data)
+names(mean_rejected) = names(data)
+means_table2 = cbind(mean_rejected, mean_accepted)
+means_table2 = means_table2[columns_to_select,]
+colnames(means_table2)=c("accpted the sfp program","rejected the sfp program")
+summary(means_table2)
+stargazer(means_table2, type = "html", title = "",  out = "means_table2.html")
+
+
+#Q10
+modelq10 = lm(first_sem_grade ~ sfp_signup,data)
+summary(modelq10)
 
 
