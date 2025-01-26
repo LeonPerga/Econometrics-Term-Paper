@@ -91,7 +91,7 @@ htmlreg(model2, file = "P3Q4.html", custom.columns = c("Intercept", "Dummy varia
 
 model3 = lm(first_sem_grade ~ ssp_offer +sfp_offer + HS_GPA + age, data)
 summary(model3)
-cov(data$ssp_offer, data$HS_GPA)
+
 linearHypothesis(model3, c("HS_GPA = 0", "age = 0"))
 #Homoscedasticity is not preserved in the regression 
 white_test(model3)
@@ -101,7 +101,7 @@ coeftest(model3, vcov = vcovHC(model3, type = "HC1"))
 
 #P3Q6
 # The null hypothesis H0: ssp_signup = sfp_signup
-# The alternative hypothesis H1 : ssp_signup != sfp_signup
+# The alternative hypothesis H1 : ssp_offer != sfp_offer
 linearHypothesis(model3, c("ssp_offer = sfp_offer"))
 # F statistic is 0.34, we will not reject the null hypothesis at a = 0.1, ssp_signup = sfp_signup
 
@@ -159,7 +159,7 @@ stargazer(means_table2, type = "html", title = "",  out = "means_table2.html")
 
 
 #Q10
-modelq10 = lm(first_sem_grade ~ sfp_signup,data)
+modelq10 = lm(first_sem_grade ~ sfp_signup,P4_Data)
 summary(modelq10)
 
 #NOTE: first column is student id and is not a metric
