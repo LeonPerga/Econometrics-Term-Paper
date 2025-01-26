@@ -9,7 +9,7 @@ library("texreg")
 data <- read.csv("term_paper_data.csv")
 #check commit
 data[, c(4, 2)]
-options(digits = 2)
+options(digits = 2, scipen = 999)
 
 sfp = filter(data, sfp_offer == 1)
 ssp = filter(data, ssp_offer == 1)
@@ -120,3 +120,5 @@ P3Q8_data = subset(data, data$sfp_offer == 1 | data$control == 1)
 
 #Adding dummy variable - 1 if HS GPA is above the median, 0 otherwise
 P3Q8_data["abv_med"] = ifelse(P3Q8_data$HS_GPA > median(P3Q8_data$HS_GPA), 1, 0)
+model_q8 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med*sfp_offer , P3Q8_data)
+summary(model_q8)
