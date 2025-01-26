@@ -11,10 +11,9 @@ data <- read.csv("term_paper_data.csv")
 data[, c(4, 2)]
 options(digits = 2)
 
-data[, background_cols]
-sfp = filter(data[,c(4, 3, )], sfp_offer == 1)
-ssp = filter(data[,2:ncol(data)], ssp_offer == 1)
-control = filter(data[,2:ncol(data)], control == 1)
+sfp = filter(data, sfp_offer == 1)
+ssp = filter(data, ssp_offer == 1)
+control = filter(data, control == 1)
 
 #NOTE: first column is student id and is not a metric
 sfp_means = colMeans(sfp)
@@ -84,7 +83,7 @@ summary(model2)
 #Homoscedasticity is preserved in the regression 
 white_test(model2)
 htmlreg(model2, file = "P3Q4.html", custom.columns = c("Intercept", "Dummy variable for belonging to SSP group", "Dummy variable for belonging to SFP group"),
-        digits = 2, custom.model.names = c("Treatment Effects on First Year Outcomes in the Sample with Fall Grades"), custom )
+        digits = 2, custom.model.names = c("Treatment Effects on First Year Outcomes in the Sample with Fall Grades") )
 #P3Q5
 
 model3 = lm(first_sem_grade ~ ssp_signup +sfp_signup + HS_GPA + age, data)
@@ -104,9 +103,9 @@ linearHypothesis(model3, c("ssp_signup = sfp_signup"))
 # F statistic is 0.34, we will not reject the null hypothesis at a = 0.1, ssp_signup = sfp_signup
 
 #P3Q7
-model4 = lm(GPA_year1 ~ ssp_signup +sfp_signup + HS_GPA + age, filtered_data)
+model4 = lm(GPA_year1 ~ ssp_signup +sfp_signup + HS_GPA + age, data)
 summary(model4)
-model5 = lm(GPA_year2 ~ ssp_signup +sfp_signup + HS_GPA + age, filtered_data)
+model5 = lm(GPA_year2 ~ ssp_signup +sfp_signup + HS_GPA + age, data)
 summary(model5)
 
 affects_table = 
@@ -115,3 +114,9 @@ affects_table =
                  Year_1 = c(unname(model4$coefficients[2]), unname(model4$coefficients[3])),
                  Year_2 = c(unname(model5$coefficients[2]), unname(model5$coefficients[3])))
 affects_table
+
+#P3Q8
+P3Q8_data = subset(data, data$sfp_offer == 1 | data$control == 1)
+
+#Adding dummy variable - 1 if HS GPA is above the median, 0 otherwise
+P3Q8_data["abv_med"] = ifelse(P3Q8_data$HS_GPA > median(P3Q8_data$HS_GPA), 1, 0)
