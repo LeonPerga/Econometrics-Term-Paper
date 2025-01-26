@@ -81,9 +81,7 @@ linearHypothesis(model1, c(
 
 #P3Q4
 
-#first we must filter out the students who were offered to take part in the program but didnt so we could properly isolate the control group
-
-model2 = lm(first_sem_grade ~ ssp_signup + sfp_signup, data)
+model2 = lm(first_sem_grade ~ ssp_offer + sfp_offer, data)
 summary(model2)
 #Homoscedasticity is preserved in the regression 
 white_test(model2)
@@ -91,7 +89,7 @@ htmlreg(model2, file = "P3Q4.html", custom.columns = c("Intercept", "Dummy varia
         digits = 2, custom.model.names = c("Treatment Effects on First Year Outcomes in the Sample with Fall Grades") )
 #P3Q5
 
-model3 = lm(first_sem_grade ~ ssp_signup +sfp_signup + HS_GPA + age, data)
+model3 = lm(first_sem_grade ~ ssp_offer +sfp_offer + HS_GPA + age, data)
 summary(model3)
 cov(data$ssp_offer, data$HS_GPA)
 linearHypothesis(model3, c("HS_GPA = 0", "age = 0"))
@@ -104,7 +102,7 @@ coeftest(model3, vcov = vcovHC(model3, type = "HC1"))
 #P3Q6
 # The null hypothesis H0: ssp_signup = sfp_signup
 # The alternative hypothesis H1 : ssp_signup != sfp_signup
-linearHypothesis(model3, c("ssp_signup = sfp_signup"))
+linearHypothesis(model3, c("ssp_offer = sfp_offer"))
 # F statistic is 0.34, we will not reject the null hypothesis at a = 0.1, ssp_signup = sfp_signup
 
 #P3Q7
@@ -143,6 +141,43 @@ linearHypothesis(model_q82, c("abv_med_sfp_offer = 0"))
 
 ### PART 4 - ANALYSIS OF INVOLVEMENT IN TREATMENT AFFECTS ###
 #############################################################
+P4_Data = subset(data, data$sfp_offer == 1 | data$control == 1)
+
+sfp_signed = filter(P4_Data, sfp_signup == 1)
+sfp_notsigned = filter(P4_Data, sfp_signup == 0)
 
 
+#NOTE: first column is student id and is not a metric
+sfp_signed_means = colMeans(sfp_signed)
+names(sfp_means) = names(sfp)
+sfp_nosigned_means = colMeans(sfp_notsigned)
+names(sfp_notsigned_means) = names(sfp_notsigned)
+# Create a vector with the column names
+columns_to_select <- c("HS_GPA", "age", "female", "english", 
+                       "dad_HS_grad", "dad_college_grad", "mom_HS_grad", 
+                       "mom_college_grad", "uni_first_choice", "finish_in_4_yrs", 
+                       "grad_degree", "live_home", "work_plans")
+# Descriptions vector
+descriptions <- c(
+  "ממוצע ציונים בתיכון",        # HS_GPA
+  "גיל",                        # age
+  "משתנה דמי לאישה",            # female
+  "שפת אם של האם היא אנגלית",   # english
+  "אב בוגר תיכון",              # dad_HS_grad
+  "אב בוגר אוניברסיטה",         # dad_college_grad
+  "אם בוגרת תיכון",             # mom_HS_grad
+  "אם בוגרת אוניברסיטה",        # mom_college_grad
+  "לומד באוניברסיטה שנבחרה כעדיפות ראשונה", # uni_first_choice
+  "מתכנן לסיים את התואר תוך 4 שנים", # finish_in_4_yrs
+  "מעוניין בתואר מעבר לתואר ראשון", # grad_degree
+  "גר בבית ההורים",             # live_home
+  "מתכנן לעבוד בזמן הלימודים"   # work_plans
+)
+means_table = cbind(t(t(sfp_notsigned_means)), t(t(sfp_signed_means)))
+means_table = means_table[columns_to_select,]
+means_table = cbind(descriptions, means_table)
+colnames(means_table) = c("descriptions", "SFP", "SSP", "Control")
+round(means_table, 2)
 
+
+stargazer(means_table, type = "text", title = "means_table",  out = "Means_Table.html")
