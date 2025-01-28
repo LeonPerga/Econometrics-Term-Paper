@@ -24,7 +24,7 @@ names(ssp_means) = names(ssp)
 columns_to_select <- c("HS_GPA", "age", "female", "english", 
                        "dad_HS_grad", "dad_college_grad", "mom_HS_grad", 
                        "mom_college_grad", "uni_first_choice", "finish_in_4_yrs", 
-                       "grad_degree", "live_home", "work_plans", "last_min")
+                       "grad_degree", "live_home", "work_plans")
 # Descriptions vector
 descriptions <- c(
   "ממוצע ציונים בתיכון",        # HS_GPA
@@ -39,8 +39,7 @@ descriptions <- c(
   "מתכנן לסיים את התואר תוך 4 שנים", # finish_in_4_yrs
   "מעוניין בתואר מעבר לתואר ראשון", # grad_degree
   "גר בבית ההורים",             # live_home
-  "מתכנן לעבוד בזמן הלימודים",  # work_plans
-  "רמת הדחיינות של התלמיד"      #last_min
+  "מתכנן לעבוד בזמן הלימודים"   # work_plans
 )
 control_means = colMeans(control)
 names(control_means) = names(control)
@@ -56,7 +55,7 @@ stargazer(means_table, type = "text", title = "means_table",  out = "Means_Table
 #P2Q3
 data_P2Q3 = subset(data, data$ssp_offer == 1 | data$control==1)
 model1 = lm(ssp_offer ~ HS_GPA + age + female + english + dad_HS_grad + dad_college_grad 
-            + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans + last_min, data_P2Q3)
+            + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans, data_P2Q3)
 model1_fixed = coeftest(model1, vcov = vcovHC(model1, type = "HC1"))
 stargazer(model1_fixed, type = "text", title = "model1", out = "model1.html")
 htmlreg(model1_fixed, file = "table2.html", custom.columns = c("החותך", descriptions), digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 1— Contrasts by treatment of SSP"))
@@ -73,8 +72,7 @@ linearHypothesis(model1, c(
   "finish_in_4_yrs = 0",
   "grad_degree = 0",
   "live_home = 0",
-  "work_plans = 0",
-  "last_min = 0"
+  "work_plans = 0"
 ))
 
 
@@ -83,7 +81,9 @@ linearHypothesis(model1, c(
 
 #P3Q4
 
-model2 = lm(first_sem_grade ~ ssp_offer + sfp_offer, data)
+#first we must filter out the students who were offered to take part in the program but didnt so we could properly isolate the control group
+
+model2 = lm(first_sem_grade ~ ssp_signup + sfp_signup, data)
 summary(model2)
 #Homoscedasticity is preserved in the regression 
 white_test(model2)
@@ -91,9 +91,9 @@ htmlreg(model2, file = "P3Q4.html", custom.columns = c("Intercept", "Dummy varia
         digits = 2, custom.model.names = c("Treatment Effects on First Year Outcomes in the Sample with Fall Grades") )
 #P3Q5
 
-model3 = lm(first_sem_grade ~ ssp_offer +sfp_offer + HS_GPA + age, data)
+model3 = lm(first_sem_grade ~ ssp_signup +sfp_signup + HS_GPA + age, data)
 summary(model3)
-
+cov(data$ssp_offer, data$HS_GPA)
 linearHypothesis(model3, c("HS_GPA = 0", "age = 0"))
 #Homoscedasticity is not preserved in the regression 
 white_test(model3)
@@ -103,8 +103,8 @@ coeftest(model3, vcov = vcovHC(model3, type = "HC1"))
 
 #P3Q6
 # The null hypothesis H0: ssp_signup = sfp_signup
-# The alternative hypothesis H1 : ssp_offer != sfp_offer
-linearHypothesis(model3, c("ssp_offer = sfp_offer"))
+# The alternative hypothesis H1 : ssp_signup != sfp_signup
+linearHypothesis(model3, c("ssp_signup = sfp_signup"))
 # F statistic is 0.34, we will not reject the null hypothesis at a = 0.1, ssp_signup = sfp_signup
 
 #P3Q7
@@ -143,10 +143,6 @@ linearHypothesis(model_q82, c("abv_med_sfp_offer = 0"))
 
 ### PART 4 - ANALYSIS OF INVOLVEMENT IN TREATMENT AFFECTS ###
 #############################################################
-P4_Data = subset(data, data$sfp_offer == 1 | data$control == 1)
-
-sfp_signed = filter(P4_Data, sfp_signup == 1)
-sfp_notsigned = filter(P4_Data, sfp_signup == 0)
 
 #Q9
 mean_accepted = colMeans(filter(data, sfp_offer == 1))
@@ -161,42 +157,17 @@ stargazer(means_table2, type = "html", title = "",  out = "means_table2.html")
 
 
 #Q10
-modelq10 = lm(first_sem_grade ~ sfp_signup,P4_Data)
+modelq10 = lm(first_sem_grade ~ sfp_signup,data)
 summary(modelq10)
 
-#NOTE: first column is student id and is not a metric
-sfp_signed_means = colMeans(sfp_signed)
-names(sfp_means) = names(sfp)
-sfp_nosigned_means = colMeans(sfp_notsigned)
-names(sfp_notsigned_means) = names(sfp_notsigned)
-# Create a vector with the column names
-columns_to_select <- c("HS_GPA", "age", "female", "english", 
-                       "dad_HS_grad", "dad_college_grad", "mom_HS_grad", 
-                       "mom_college_grad", "uni_first_choice", "finish_in_4_yrs", 
-                       "grad_degree", "live_home", "work_plans")
-# Descriptions vector
-descriptions <- c(
-  "ממוצע ציונים בתיכון",        # HS_GPA
-  "גיל",                        # age
-  "משתנה דמי לאישה",            # female
-  "שפת אם של האם היא אנגלית",   # english
-  "אב בוגר תיכון",              # dad_HS_grad
-  "אב בוגר אוניברסיטה",         # dad_college_grad
-  "אם בוגרת תיכון",             # mom_HS_grad
-  "אם בוגרת אוניברסיטה",        # mom_college_grad
-  "לומד באוניברסיטה שנבחרה כעדיפות ראשונה", # uni_first_choice
-  "מתכנן לסיים את התואר תוך 4 שנים", # finish_in_4_yrs
-  "מעוניין בתואר מעבר לתואר ראשון", # grad_degree
-  "גר בבית ההורים",             # live_home
-  "מתכנן לעבוד בזמן הלימודים",  # work_plans
-  "רמת הדחיינות של התלמיד"      #last_min
-)ם"   # work_plans
-)
-means_table = cbind(t(t(sfp_notsigned_means)), t(t(sfp_signed_means)))
-means_table = means_table[columns_to_select,]
-means_table = cbind(descriptions, means_table)
-colnames(means_table) = c("descriptions", "SFP", "SSP", "Control")
-round(means_table, 2)
+#Q11
 
-
-stargazer(means_table, type = "text", title = "means_table",  out = "Means_Table.html")
+cov(data$sfp_offer,modelq10$residuals)
+cov(data$sfp_offer,data$sfp_signup)
+modelq11p1 = lm(sfp_signup ~ sfp_offer, data)
+summary(modelq11p1)
+predicted_signup =fitted.values(modelq11p1)
+modelq11p2 = lm(first_sem_grade ~ predicted_signup, data)
+summary(modelq11p2)
+stargazer(modelq11p1, type = "html", title = "שלב ראשון",  out = "first step.html")
+stargazer(modelq11p2, type = "html", title = "IV אמידת",  out = "modelq11p2.html")
