@@ -7,6 +7,7 @@ library("car")
 library("stargazer")
 library("texreg")
 library(broom)
+library("lfe")
 data <- read.csv("term_paper_data.csv")
 #check commit
 data[, c(4, 2)]
@@ -146,7 +147,7 @@ linearHypothesis(model_q82, c("abv_med_sfp_offer = 0"))
 #############################################################
 
 #Q9
-filtered_data = filter(data, sfp_offer == 1 )
+filtered_data = filter(data, sfp_offer == 1 | contorl == 1 )
 mean_accepted = colMeans(filter(filtered_data, sfp_signup == 1 ))
 mean_rejected = colMeans(filter(filtered_data, sfp_signup == 0))
 names(mean_accepted) = names(data)
@@ -163,6 +164,9 @@ modelq10 = lm(first_sem_grade ~ sfp_signup,data)
 summary(modelq10)
 
 #Q11
+mod_tsls = felm
+
+
 
 modelq11p1 = lm(sfp_signup ~ sfp_offer, data)
 
