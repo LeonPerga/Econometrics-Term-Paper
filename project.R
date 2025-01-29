@@ -13,6 +13,7 @@ data <- read.csv("term_paper_data.csv")
 data[, c(4, 2)]
 options(digits = 2, scipen = 999)
 
+
 sfp = filter(data, sfp_offer == 1)
 ssp = filter(data, ssp_offer == 1)
 control = filter(data, control == 1)
@@ -170,15 +171,5 @@ mod_tsls = felm(formula = first_sem_grade ~ 1 | 0 | (sfp_signup ~ sfp_offer) | 0
 summary(mod_tsls$stage1)
 summary(mod_tsls, robust = TRUE)
 
-modelq11p1 = lm(sfp_signup ~ sfp_offer, filtered_data)
-summary(modelq11p1)
-cov(filtered_data$sfp_offer, filtered_data$sfp_signup)
-#H0 : cov(sfp_offer,sfp_signup) = 0 
-linearHypothesis(modekq11p1, "sfp_offer")
-
-
-predicted_signup = predict(modelq11p1)
-modelq11p2 = lm(first_sem_grade ~ predicted_signup, filtered_data)
-summary(modelq11p2)
 stargazer(modelq11p1, type = "html", title = "שלב ראשון",  out = "first step.html")
 stargazer(modelq11p2, type = "html", title = "IV אמידת",  out = "modelq11p2.html")
