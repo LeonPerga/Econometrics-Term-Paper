@@ -148,8 +148,8 @@ linearHypothesis(model_q82, c("abv_med_sfp_offer = 0"))
 
 #Q9
 filtered_data = filter(data, sfp_offer == 1 | contorl == 1 )
-mean_accepted = colMeans(filter(filtered_data, sfp_signup == 1 ))
-mean_rejected = colMeans(filter(filtered_data, sfp_signup == 0))
+mean_accepted = colMeans(filter(filtered_data, sfp_signup == 1 & sfp_offer == 1))
+mean_rejected = colMeans(filter(filtered_data, sfp_signup == 0 & sfp_offer == 1))
 names(mean_accepted) = names(data)
 names(mean_rejected) = names(data)
 means_table2 = cbind(mean_rejected, mean_accepted)
@@ -160,7 +160,7 @@ stargazer(means_table2, type = "html", title = "",  out = "means_table2.html")
 
 
 #Q10
-modelq10 = lm(first_sem_grade ~ sfp_signup,data)
+modelq10 = lm(first_sem_grade ~ sfp_signup,filtered_data)
 summary(modelq10)
 
 #Q11
@@ -168,14 +168,14 @@ mod_tsls = felm
 
 
 
-modelq11p1 = lm(sfp_signup ~ sfp_offer, data)
+modelq11p1 = lm(sfp_signup ~ sfp_offer, filtered_data)
 
 #H0 : cov(sfp_offer,sfp_signup) = 0 
 linearHypothesis(modelq11p1, "sfp_offer")
 
 
 predicted_signup = predict(modelq11p1)
-modelq11p2 = lm(first_sem_grade ~ predicted_signup, data)
+modelq11p2 = lm(first_sem_grade ~ predicted_signup, filtered_data)
 summary(modelq11p2)
 stargazer(modelq11p1, type = "html", title = "שלב ראשון",  out = "first step.html")
 stargazer(modelq11p2, type = "html", title = "IV אמידת",  out = "modelq11p2.html")
