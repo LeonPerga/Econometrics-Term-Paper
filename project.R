@@ -166,13 +166,14 @@ white_test(modelq10)
 
 
 #Q11
-mod_tsls = felm(formula = first_sem_grade ~ 1 | 0 | (sfp_signup ~ sfp_offer + age) | 0, data = filtered_data)
+mod_tsls = felm(formula = first_sem_grade ~ 1 | 0 | (sfp_signup ~ sfp_offer) | 0, data = filtered_data) #############################################################
+summary(mod_tsls$stage1)
 summary(mod_tsls, robust = TRUE)
 
 modelq11p1 = lm(sfp_signup ~ sfp_offer, filtered_data)
-
-#H0 : cov(sfp_offer,sfp_signup) = 0 
-linearHypothesis(modelq11p1, "sfp_offer")
+summary(modelq11p1)
+#H0 : cov(sfp_offer,sfp_signup) = 0 #############################################################
+linearHypothesis(modekq11p1, "sfp_offer")
 
 
 predicted_signup = predict(modelq11p1)
