@@ -82,67 +82,160 @@ linearHypothesis(model1, c(
 ### PART 3 - ANALYSIS OF SFP & SSP TREATMENT AFFECTS ###
 ########################################################
 
-#P3Q4
+#P3Q4 ########################################################
 
-#first we must filter out the students who were offered to take part in the program but didnt so we could properly isolate the control group
-
-model2 = lm(first_sem_grade ~ ssp_signup + sfp_signup, data)
+model2 = lm(first_sem_grade ~ ssp_offer + sfp_offer, data)
 summary(model2)
 #Homoscedasticity is preserved in the regression 
 white_test(model2)
+### This might be an explanation for the hetrostadicity ### 
+plot(data$sfp_offer , model2$residuals^2)
 htmlreg(model2, file = "P3Q4.html", custom.columns = c("Intercept", "Dummy variable for belonging to SSP group", "Dummy variable for belonging to SFP group"),
         digits = 2, custom.model.names = c("Treatment Effects on First Year Outcomes in the Sample with Fall Grades") )
-#P3Q5
 
-model3 = lm(first_sem_grade ~ ssp_signup +sfp_signup + HS_GPA + age, data)
-summary(model3)
-cov(data$ssp_offer, data$HS_GPA)
-linearHypothesis(model3, c("HS_GPA = 0", "age = 0"))
-#Homoscedasticity is not preserved in the regression 
-white_test(model3)
-coeftest(model3, vcov = vcovHC(model3, type = "HC1"))
+#P3Q5 ########################################################
+#paste(columns_to_select, collapse = " + ")
+
+### Let's throw all variables into one regression ###
+
+model_test_controls = lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA + age + female + english + dad_HS_grad + dad_college_grad + mom_HS_grad + mom_college_grad + 
+                           uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans  + last_min +sfp_signup + ssp_signup , data)
+
+### So many variables! high chance of hetrostadicity ###
+
+white_test(model_test_controls)
+
+### Rejecting null hypthesis, there is hetrostadicity in our model###
+### This might be an explanation for the hetrostadicity ### 
+plot(data$sfp_offer , model_test_controls$residuals^2)
+plot(data$sfp_offer , model_test_controls$residuals^2)
+plot(data$ssp_offer , model_test_controls$residuals^2)
+plot(data$sfp_signup , model_test_controls$residuals^2)
+plot(data$ssp_signup , model_test_controls$residuals^2)
+
+### Let's fix the hetrostadicity  ###
+coeftest(model_test_controls, vcov = vcovHC(model_test_controls, type = "HC1"))
+
+### Okay, so only age, HS_GPA, female, english and finish_in_4_yrs are significant, are all the other at least significant together? ###
+robust_se = vcovHC(model_test_controls, type = "HC1")
+linearHypothesis(model_test_controls, c(
+  "dad_HS_grad = 0",
+  "dad_college_grad = 0",
+  "mom_HS_grad = 0",
+  "mom_college_grad = 0",
+  "uni_first_choice = 0",
+  "grad_degree = 0",
+  "live_home = 0",
+  "work_plans = 0",
+  "last_min = 0",
+  "sfp_signup = 0",
+  "ssp_signup = 0"),
+  vcov. = robust_se)
+
+
+### They are not, so they are most likely irrelevant ###
+### Let's see if any variables are correlated ###
+
+print(vcov(model_test_controls))
+
+### Doesn't seem so ###
+
+### New model ###
+
+model_test_controls_2 =  lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
+
+### Do we still have hetrostadicity? ###
+plot(data$sfp_offer , model_test_controls_2$residuals^2)
+white_test(model_test_controls_2)
 
 
 
-#P3Q6
+coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))
+summary(model2)
+### Yep! but larger pval, Makes sense because we got rid of signups and other potential variables###
+
+
+### After getting rid of variables that are not affecting first_sem_grade, it's time to check cov of coeffs ###
+
+print(vcov(model_test_controls_2))
+
+### No significant correlations, now we can test significance of each variable alone ###
+
+robust_se_2 = vcovHC(model_test_controls_2, type = "HC1")
+
+linearHypothesis(model_test_controls_2, c("HS_GPA +female +age +english = 0"), vcov. = robust_se_2)
+
+linearHypothesis(model_test_controls_2, c(
+  "HS_GPA = 0",
+  "finish_in_4_yrs = 0",
+  "female = 0",
+  "age = 0"),
+  vcov. = robust_se_2)
+
+### The effects of all variables are negligable together, however they are significantly not all 0. meaning they exist. and so are very good control variables ###
+
+coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))
+
+
+
+
+#P3Q6 ########################################################
 # The null hypothesis H0: ssp_signup = sfp_signup
 # The alternative hypothesis H1 : ssp_signup != sfp_signup
-linearHypothesis(model3, c("ssp_signup = sfp_signup"))
-# F statistic is 0.34, we will not reject the null hypothesis at a = 0.1, ssp_signup = sfp_signup
+linearHypothesis(model_test_controls_2, c("sfp_offer = ssp_offer"), vcov. = robust_se_2)
+# F statistic is 0.077, we will not reject the null hypothesis at a = 0.1, sfp_offer is not ssp_offer
 
-#P3Q7
-model4 = lm(GPA_year1 ~ ssp_signup +sfp_signup + HS_GPA + age, data)
+#P3Q7  ########################################################
+model4 = lm(GPA_year1 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
+# White test
+white_test(model4)
+# homo is preserevdd
+
 summary(model4)
-model5 = lm(GPA_year2 ~ ssp_signup +sfp_signup + HS_GPA + age, data)
-summary(model5)
+model5 = lm(GPA_year2 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
+# White test
+white_test(model4)
+# homo is NOT preserevdd
+coeftest(model5, vcov = vcovHC(model5, type = "HC1"))
 
 affects_table = 
-  data.frame(Treatment = c("SSP", "SFP"), Fall_Semester = 
-               c(unname(model3$coefficients[2]), unname(model3$coefficients[3])),
+  data.frame(Treatment = c("SFP", "SSP"), 
+             Fall_Semester = c(unname(model_test_controls_2$coefficients[2]), unname(model_test_controls_2$coefficients[3])),
              Year_1 = c(unname(model4$coefficients[2]), unname(model4$coefficients[3])),
              Year_2 = c(unname(model5$coefficients[2]), unname(model5$coefficients[3])))
 affects_table
 affects_table  = t(affects_table)
 stargazer(affects_table, type = "text", title = "Affects_Table",  out = "Affects_Table.html")
-#P3Q8
+
+
+#P3Q8  ########################################################
 P3Q8_data = subset(data, data$sfp_offer == 1 | data$control == 1)
 
 #Adding dummy variable - 1 if HS GPA is above the median, 0 otherwise
 P3Q8_data["abv_med"] = ifelse(P3Q8_data$HS_GPA > median(P3Q8_data$HS_GPA), 1, 0)
 model_q8 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med*sfp_offer , P3Q8_data)
+white_test(model_q8)
+# homo is preserevdd
 summary(model_q8)
+coeftest(model_q8, vcov = vcovHC(model5, type = "HC1"))
+
+
 
 # Adding interaction dummy variable
 P3Q8_data["abv_med_sfp_offer"] = P3Q8_data$sfp_offer*P3Q8_data$abv_med
 # We can see same model as q8
-model_q82 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med_sfp_offer + HS_GPA + age , P3Q8_data)
+model_q82 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med_sfp_offer, P3Q8_data)
 summary(model_q82)
-# Output model to html
-htmlreg(model_q82, file = "P3Q8.html", custom.columns = c("Intercept", "Dummy variable for belonging to SFP group", "Dummy variable for having HS GPA above median", "Interactio dummy variable", "HS GPA", "age"),
-        digits = 2, custom.model.names = c("Differemces of SFP Treatment Effects on First Year Outcomes in the Sample with Fall Grades for students with GPA above median") )
+white_test(model_q82)
+
 
 # Checking hypothesis
 linearHypothesis(model_q82, c("abv_med_sfp_offer = 0"))
+
+# Output model to html
+htmlreg(model_q8, file = "P3Q8.html", custom.columns = c("Intercept", "Dummy variable for belonging to SFP group", "Dummy variable for having HS GPA above median", "Interactio dummy variable"),
+        digits = 2, custom.model.names = c("Differemces of SFP Treatment Effects on First Year Outcomes in the Sample with Fall Grades for students with GPA above median") )
+
 
 ### PART 4 - ANALYSIS OF INVOLVEMENT IN TREATMENT AFFECTS ###
 #############################################################
