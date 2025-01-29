@@ -7,6 +7,7 @@ library("car")
 library("stargazer")
 library("texreg")
 library(broom)
+library("lfe")
 data <- read.csv("term_paper_data.csv")
 #check commit
 data[, c(4, 2)]
@@ -117,8 +118,8 @@ summary(model5)
 affects_table = 
   data.frame(Treatment = c("SSP", "SFP"), Fall_Semester = 
                c(unname(model3$coefficients[2]), unname(model3$coefficients[3])),
-                 Year_1 = c(unname(model4$coefficients[2]), unname(model4$coefficients[3])),
-                 Year_2 = c(unname(model5$coefficients[2]), unname(model5$coefficients[3])))
+             Year_1 = c(unname(model4$coefficients[2]), unname(model4$coefficients[3])),
+             Year_2 = c(unname(model5$coefficients[2]), unname(model5$coefficients[3])))
 affects_table
 affects_table  = t(affects_table)
 stargazer(affects_table, type = "text", title = "Affects_Table",  out = "Affects_Table.html")
@@ -146,9 +147,9 @@ linearHypothesis(model_q82, c("abv_med_sfp_offer = 0"))
 #############################################################
 
 #Q9
-filtered_data = filter(data, sfp_offer == 1 )
-mean_accepted = colMeans(filter(filtered_data, sfp_signup == 1 ))
-mean_rejected = colMeans(filter(filtered_data, sfp_signup == 0))
+filtered_data = filter(data, sfp_offer == 1 | control == 1 )
+mean_accepted = colMeans(filter(filtered_data, sfp_signup == 1 & sfp_offer == 1))
+mean_rejected = colMeans(filter(filtered_data, sfp_signup == 0 & sfp_offer == 1))
 names(mean_accepted) = names(data)
 names(mean_rejected) = names(data)
 means_table2 = cbind(mean_rejected, mean_accepted)
@@ -159,19 +160,25 @@ stargazer(means_table2, type = "html", title = "",  out = "means_table2.html")
 
 
 #Q10
-modelq10 = lm(first_sem_grade ~ sfp_signup,data)
+modelq10 = lm(first_sem_grade ~ sfp_signup,filtered_data)
 summary(modelq10)
+white_test(modelq10)
+
 
 #Q11
+mod_tsls = felm(formula = first_sem_grade ~ 1 | 0 | (sfp_signup ~ sfp_offer) | 0, data = filtered_data)
+summary(mod_tsls$stage1)
+summary(mod_tsls, robust = TRUE)
 
-modelq11p1 = lm(sfp_signup ~ sfp_offer, data)
-
+modelq11p1 = lm(sfp_signup ~ sfp_offer, filtered_data)
+summary(modelq11p1)
+cov(filtered_data$sfp_offer, filtered_data$sfp_signup)
 #H0 : cov(sfp_offer,sfp_signup) = 0 
-linearHypothesis(modelq11p1, "sfp_offer")
+linearHypothesis(modekq11p1, "sfp_offer")
 
 
 predicted_signup = predict(modelq11p1)
-modelq11p2 = lm(first_sem_grade ~ predicted_signup, data)
+modelq11p2 = lm(first_sem_grade ~ predicted_signup, filtered_data)
 summary(modelq11p2)
 stargazer(modelq11p1, type = "html", title = "שלב ראשון",  out = "first step.html")
 stargazer(modelq11p2, type = "html", title = "IV אמידת",  out = "modelq11p2.html")
