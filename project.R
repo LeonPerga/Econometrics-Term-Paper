@@ -147,7 +147,7 @@ linearHypothesis(model_q82, c("abv_med_sfp_offer = 0"))
 #############################################################
 
 #Q9
-filtered_data = filter(data, sfp_offer == 1 | contorl == 1 )
+filtered_data = filter(data, sfp_offer == 1 | control == 1 )
 mean_accepted = colMeans(filter(filtered_data, sfp_signup == 1 & sfp_offer == 1))
 mean_rejected = colMeans(filter(filtered_data, sfp_signup == 0 & sfp_offer == 1))
 names(mean_accepted) = names(data)
@@ -172,6 +172,7 @@ summary(mod_tsls, robust = TRUE)
 
 modelq11p1 = lm(sfp_signup ~ sfp_offer, filtered_data)
 summary(modelq11p1)
+cov(filtered_data$sfp_offer, filtered_data$sfp_signup)
 #H0 : cov(sfp_offer,sfp_signup) = 0 #############################################################
 linearHypothesis(modekq11p1, "sfp_offer")
 
