@@ -162,11 +162,12 @@ stargazer(means_table2, type = "html", title = "",  out = "means_table2.html")
 #Q10
 modelq10 = lm(first_sem_grade ~ sfp_signup,filtered_data)
 summary(modelq10)
+white_test(modelq10)
+
 
 #Q11
-mod_tsls = felm
-
-
+mod_tsls = felm(formula = first_sem_grade ~ 1 | 0 | (sfp_signup ~ sfp_offer + age) | 0, data = filtered_data)
+summary(mod_tsls, robust = TRUE)
 
 modelq11p1 = lm(sfp_signup ~ sfp_offer, filtered_data)
 
