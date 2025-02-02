@@ -209,31 +209,25 @@ model4 = lm(GPA_year1 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english +
 white_test(model4)
 
 linearHypothesis(model4, c("sfp_offer =0", "ssp_offer = 0"))
-
 # homo is preserevdd
 
 summary(model4)
 
 model5 = lm(GPA_year2 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
 
-
-
 # White test
 white_test(model5)
 # homo is NOT preserevdd
-coeftest(model5, vcov = vcovHC(model5, type = "HC1"))
+model5_robust = coeftest(model5, vcov = vcovHC(model5, type = "HC1"))
 
 linearHypothesis(model5, c("sfp_offer =0", "ssp_offer = 0"), vcov. =  vcovHC(model5, type = "HC1"))
 
 affects_table = 
-  data.frame(Treatment = c("SFP", "SSP"), 
-             Fall_Semester = c(unname(model_test_controls_2$coefficients[2]), unname(model_test_controls_2$coefficients[3])),
-             Year_1 = c(unname(model4$coefficients[2]), unname(model4$coefficients[3])),
-             Year_2 = c(unname(model5$coefficients[2]), unname(model5$coefficients[3])))
-affects_table
-affects_table  = t(affects_table)
+  rbind(Treatment = c("SFP", "std. Error" , "SSP",  "std. Error" ), 
+             Fall_Semester = c(unname(model_test_controls_2$coefficients[2]),   mode_controls[2, "Std. Error"] , unname(model_test_controls_2$coefficients[3]), mode_controls[3, "Std. Error"]  ),
+             Year_1 = c(unname(model4$coefficients[2]), summary(model4)$coefficients[2, "Std. Error"], unname(model4$coefficients[3]),  summary(model4)$coefficients[3, "Std. Error"]),
+             Year_2 = c(unname(model5$coefficients[2]), model5_robust[1, "Std. Error"] , unname(model5$coefficients[3]), model5_robust[1, "Std. Error"]))
 stargazer(affects_table, type = "text", title = "Affects_Table",  out = "Affects_Table.html")
-
 
 #P3Q8  ########################################################
 P3Q8_data = subset(data, data$sfp_offer == 1 | data$control == 1)
@@ -261,7 +255,7 @@ linearHypothesis(model_q82, c("abv_med_sfp_offer = 0"))
 
 # Output model to html
 htmlreg(model_q8, file = "P3Q8.html", custom.columns = c("Intercept", "Dummy variable for belonging to SFP group", "Dummy variable for having HS GPA above median", "Interactio dummy variable"),
-        digits = 2, custom.model.names = c("Differemces of SFP Treatment Effects on First Year Outcomes in the Sample with Fall Grades for students with GPA above median") )
+        digits = 2, stars = c(0.001, 0.05,0.1), custom.model.names = c("How SFP Effects grades for students with or without GPA above median") )
 
 
 ### PART 4 - ANALYSIS OF INVOLVEMENT IN TREATMENT AFFECTS ###
