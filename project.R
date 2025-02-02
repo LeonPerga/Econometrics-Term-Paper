@@ -280,3 +280,4 @@ summary(mod_tsls, robust = TRUE)
 
 stargazer(modelq11p1, type = "html", title = "שלב ראשון",  out = "first step.html")
 stargazer(modelq11p2, type = "html", title = "IV אמידת",  out = "modelq11p2.html")
+#TEST
