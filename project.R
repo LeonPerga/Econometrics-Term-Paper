@@ -90,7 +90,7 @@ white_test(model2)
 
 # Out put model to html for the document.
 htmlreg(model2, file = "P3Q4.html", custom.columns = c("Intercept", "Dummy variable for belonging to SSP group", "Dummy variable for belonging to SFP group"),
-        digits = 2, custom.model.names = c("Treatment Effects on First Year Outcomes in the Sample with Fall Grades") )
+        digits = 2, , stars = c(0.01, 0.05, 0.1), custom.model.names = c("Treatment Effects on First Year Outcomes in the Sample with Fall Grades") )
 
 #P3Q5 ########################################################
 
@@ -98,15 +98,33 @@ htmlreg(model2, file = "P3Q4.html", custom.columns = c("Intercept", "Dummy varia
 
 model_test_controls = lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA + age + female + english + dad_HS_grad + dad_college_grad + mom_HS_grad + mom_college_grad + 
                            uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans  + last_min +sfp_signup + ssp_signup , data)
+# Out put model to html for the document.
+htmlreg(model_test_controls, file = "P3Q5.html", digits = 2,, stars = c(0.01, 0.05, 0.1), custom.model.names = c("TABLE 5 - Affects on academic preformance") )
 
-### So many variables! high chance of hetrostadicity ###
+### So many variables! high chance of heteroskedasticity ###
 
 white_test(model_test_controls)
 
-### Rejecting null hypthesis, there is hetrostadicity in our model###
+### Rejecting null hypthesis, there is heteroskedasticity in our model###
 
-### Let's fix the hetrostadicity  ###
-coeftest(model_test_controls, vcov = vcovHC(model_test_controls, type = "HC1"))
+### Let's fix the heteroskedasticity  ###
+model_test_controls_robust = coeftest(model_test_controls, vcov = vcovHC(model_test_controls, type = "HC1"))
+
+
+
+# Out put model to html for the document.
+htmlreg(model_test_controls_robust, file = "P3Q5_2.html", digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("TABLE 6 - Fixed heteroskedasticity") )
+
+## Parents education is muilticolinear ##
+print(vcov(model_test_controls)[c(8,9,10,11),c(8,9,10,11)])
+stargazer(vcov(model_test_controls)[c(8,9,10,11),c(8,9,10,11)], type = "text", title = "TABLE 7: vcov-matrix", out = "vcov.html")
+
+linearHypothesis(model_test_controls, c(
+  "dad_HS_grad = 0",
+  "dad_college_grad = 0",
+  "mom_HS_grad = 0",
+  "mom_college_grad = 0"),
+  vcov. = robust_se)
 
 ### Okay, so only age, HS_GPA, female, english and finish_in_4_yrs are significant, are all the other at least significant together? ###
 robust_se = vcovHC(model_test_controls, type = "HC1")
@@ -124,7 +142,6 @@ linearHypothesis(model_test_controls, c(
   "ssp_signup = 0"),
   vcov. = robust_se)
 
-
 ### They are not, so they are most likely irrelevant ###
 ### Let's see if any variables are correlated ###
 
@@ -136,34 +153,39 @@ print(vcov(model_test_controls))
 
 model_test_controls_2 =  lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
 
-### Do we still have hetrostadicity? ###
+### Do we still have heteroskedasticity? ###
 white_test(model_test_controls_2)
 
 
 ### Yep! but larger pval, Makes sense because we got rid of signups and other potential variables###
-coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))
+model_test_controls_2_robust = coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))
+htmlreg(model_test_controls_2_robust, file = "P3Q5_2.html", digits = 2,, stars = c(0.01, 0.05, 0.1), custom.model.names = c("TABLE 9 - Fixed heteroskedasticity") )
 summary(model_test_controls_2)
 
 ## should we give up finish_in4_yrs? ##
-model_test_controls_3 =  lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA +age + female + english , data)
+model_test_controls_3 =  lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA + age + female + english , data)
 white_test(model_test_controls_3)
-coeftest(model_test_controls_3, vcov = vcovHC(model_test_controls_2, type = "HC1"))
+model_test_controls_3_robust = coeftest(model_test_controls_3, vcov = vcovHC(model_test_controls_2, type = "HC1"))
+htmlreg(model_test_controls_3_robust, file = "P3Q5_2.html", digits = 2,, stars = c(0.01, 0.05, 0.1), custom.model.names = c("TABLE 10 - removed finish_in_4_yrs") )
+
 summary(model_test_controls_3)
 
-## Same st.d highr R2, we will keep finish_in_4_yrs in the model ##
+## A bit lower st.d and higher R2, we will keep finish_in_4_yrs in the model ##
 
 ### After getting rid of variables that are not affecting first_sem_grade, it's time to check cov of coeffs ###
 
 print(vcov(model_test_controls_2))
+stargazer(vcov(model_test_controls_2)[c(8,9,10,11),c(8,9,10,11)], type = "text", title = "TABLE 11: vcov-matrix 2", out = "vcov.html")
+stargazer(vcov(model_test_controls_2)[2:8, 2:8], type = "text", title = "TABLE 11: vcov-matrix_2", out = "vcov2.html")
 
 ### No significant correlations, now we can test significance of each variable alone ###
 
 robust_se_2 = vcovHC(model_test_controls_2, type = "HC1")
 
-linearHypothesis(model_test_controls_2, c("HS_GPA +female +age +english + finish_in_4_yrs = 0"), vcov. = robust_se_2)
-
 linearHypothesis(model_test_controls_2, c(
   "HS_GPA = 0",
+  "ssp_offer = 0",
+  "sfp_offer = 0",
   "finish_in_4_yrs = 0",
   "female = 0",
   "english = 0",
@@ -174,12 +196,11 @@ linearHypothesis(model_test_controls_2, c(
 
 mode_controls = coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))
 
-
-
 #P3Q6 ########################################################
 # The null hypothesis H0: ssp_signup = sfp_signup
 # The alternative hypothesis H1 : ssp_signup != sfp_signup
 linearHypothesis(model_test_controls_2, c("sfp_offer = ssp_offer"), vcov. = robust_se_2)
+linearHypothesis(model_test_controls_2, c("sfp_offer=0", "ssp_offer = 0"), vcov. = robust_se_2)
 # F statistic is 0.077, we will not reject the null hypothesis at a = 0.1, sfp_offer is not ssp_offer
 
 #P3Q7  ########################################################
