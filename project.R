@@ -6,7 +6,7 @@ library("whitestrap")
 library("car")
 library("stargazer")
 library("texreg")
-library(broom)
+library("broom")
 library("lfe")
 data <- read.csv("term_paper_data.csv")
 #check commit
@@ -278,6 +278,5 @@ mod_tsls = felm(formula = first_sem_grade ~ 1 | 0 | (sfp_signup ~ sfp_offer) | 0
 summary(mod_tsls$stage1)
 summary(mod_tsls, robust = TRUE)
 
-stargazer(modelq11p1, type = "html", title = "שלב ראשון",  out = "first step.html")
-stargazer(modelq11p2, type = "html", title = "IV אמידת",  out = "modelq11p2.html")
-#TEST
+stargazer(mod_tsls, type = "html", title = "שלב ראשון",  out = "first step.html")
+stargazer(mod_tsls$stage1, type = "html", title = "IV אמידת",  out = "modelq11p2.html")
