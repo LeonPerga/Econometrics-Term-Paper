@@ -9,8 +9,7 @@ library("texreg")
 library("broom")
 library("lfe")
 data <- read.csv("term_paper_data.csv")
-#check commit
-data[, c(4, 2)]
+
 options(digits = 2, scipen = 999)
 
 
@@ -88,13 +87,12 @@ model2 = lm(first_sem_grade ~ ssp_offer + sfp_offer, data)
 summary(model2)
 #Homoscedasticity is preserved in the regression 
 white_test(model2)
-### This might be an explanation for the hetrostadicity ### 
-plot(data$sfp_offer , model2$residuals^2)
+
+# Out put model to html for the document.
 htmlreg(model2, file = "P3Q4.html", custom.columns = c("Intercept", "Dummy variable for belonging to SSP group", "Dummy variable for belonging to SFP group"),
         digits = 2, custom.model.names = c("Treatment Effects on First Year Outcomes in the Sample with Fall Grades") )
 
 #P3Q5 ########################################################
-#paste(columns_to_select, collapse = " + ")
 
 ### Let's throw all variables into one regression ###
 
@@ -106,12 +104,6 @@ model_test_controls = lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA + age 
 white_test(model_test_controls)
 
 ### Rejecting null hypthesis, there is hetrostadicity in our model###
-### This might be an explanation for the hetrostadicity ### 
-plot(data$sfp_offer , model_test_controls$residuals^2)
-plot(data$sfp_offer , model_test_controls$residuals^2)
-plot(data$ssp_offer , model_test_controls$residuals^2)
-plot(data$sfp_signup , model_test_controls$residuals^2)
-plot(data$ssp_signup , model_test_controls$residuals^2)
 
 ### Let's fix the hetrostadicity  ###
 coeftest(model_test_controls, vcov = vcovHC(model_test_controls, type = "HC1"))
@@ -145,15 +137,20 @@ print(vcov(model_test_controls))
 model_test_controls_2 =  lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
 
 ### Do we still have hetrostadicity? ###
-plot(data$sfp_offer , model_test_controls_2$residuals^2)
 white_test(model_test_controls_2)
 
 
-
-coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))
-summary(model2)
 ### Yep! but larger pval, Makes sense because we got rid of signups and other potential variables###
+coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))
+summary(model_test_controls_2)
 
+## should we give up finish_in4_yrs? ##
+model_test_controls_3 =  lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA +age + female + english , data)
+white_test(model_test_controls_3)
+coeftest(model_test_controls_3, vcov = vcovHC(model_test_controls_2, type = "HC1"))
+summary(model_test_controls_3)
+
+## Same st.d highr R2, we will keep finish_in_4_yrs in the model ##
 
 ### After getting rid of variables that are not affecting first_sem_grade, it's time to check cov of coeffs ###
 
@@ -163,19 +160,19 @@ print(vcov(model_test_controls_2))
 
 robust_se_2 = vcovHC(model_test_controls_2, type = "HC1")
 
-linearHypothesis(model_test_controls_2, c("HS_GPA +female +age +english = 0"), vcov. = robust_se_2)
+linearHypothesis(model_test_controls_2, c("HS_GPA +female +age +english + finish_in_4_yrs = 0"), vcov. = robust_se_2)
 
 linearHypothesis(model_test_controls_2, c(
   "HS_GPA = 0",
   "finish_in_4_yrs = 0",
   "female = 0",
+  "english = 0",
   "age = 0"),
   vcov. = robust_se_2)
 
 ### The effects of all variables are negligable together, however they are significantly not all 0. meaning they exist. and so are very good control variables ###
 
-coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))
-
+mode_controls = coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))
 
 
 
@@ -266,6 +263,9 @@ colnames(means_table2)=c("accpted the sfp program","rejected the sfp program")
 summary(means_table2)
 stargazer(means_table2, type = "html", title = "",  out = "means_table2.html")
 
+### The variables seems endogenous, especially sfp_offer ### 
+plot(data$sfp_offer , model2$residuals^2)
+plot(data$ssp_offer , model2$residuals^2)
 
 #Q10
 modelq10 = lm(first_sem_grade ~ sfp_signup,filtered_data)
