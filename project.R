@@ -208,12 +208,6 @@ model4 = lm(GPA_year1 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english +
 # White test
 white_test(model4)
 
-linearHypothesis(model4, c("sfp_offer = ssp_offer"))
-
-linearHypothesis(model4, c("sfp_offer = -ssp_offer"))
-
-linearHypothesis(model4, c("sfp_offer =0", "ssp_offer = 0"))
-
 # homo is preserevdd
 
 summary(model4)
