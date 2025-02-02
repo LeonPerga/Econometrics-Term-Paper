@@ -208,21 +208,22 @@ model4 = lm(GPA_year1 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english +
 # White test
 white_test(model4)
 
+linearHypothesis(model4, c("sfp_offer =0", "ssp_offer = 0"))
+
 # homo is preserevdd
 
 summary(model4)
+
 model5 = lm(GPA_year2 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
 
-linearHypothesis(model5, c("sfp_offer = ssp_offer"), vcov. =  vcovHC(model5, type = "HC1"))
 
-linearHypothesis(model5, c("sfp_offer = -ssp_offer"), vcov. =  vcovHC(model5, type = "HC1"))
-
-linearHypothesis(model5, c("sfp_offer =0", "ssp_offer = 0"), vcov. =  vcovHC(model5, type = "HC1"))
 
 # White test
 white_test(model5)
 # homo is NOT preserevdd
 coeftest(model5, vcov = vcovHC(model5, type = "HC1"))
+
+linearHypothesis(model5, c("sfp_offer =0", "ssp_offer = 0"), vcov. =  vcovHC(model5, type = "HC1"))
 
 affects_table = 
   data.frame(Treatment = c("SFP", "SSP"), 
