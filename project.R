@@ -276,13 +276,6 @@ colnames(means_table2)=c("accpted the sfp program","rejected the sfp program")
 summary(means_table2)
 stargazer(means_table2, type = "html", title = "",  out = "means_table2.html")
 
-### The variables seems endogenous, especially sfp_offer ### 
-plot(data$finish_in_4_yrs , model5$residuals^2)
-cov(data$age , model5$residuals^2)
-
-model3 = lm(first_sem_grade ~ sfp_offer, data)
-white_test(model3)
-plot(data$ssp_offer , model3$residuals^2)
 
 #Q10
 modelq10 = lm(first_sem_grade ~ sfp_signup,filtered_data)
@@ -291,9 +284,19 @@ white_test(modelq10)
 
 
 #Q11
-mod_tsls = felm(formula = first_sem_grade ~ 1 | 0 | (sfp_signup ~ sfp_offer) | 0, data = filtered_data)
+mod_tsls = felm(formula = first_sem_grade ~ 1 | 0 | (sfp_signup ~ sfp_offer) | 0, data = filtered_data) #############################################################
 summary(mod_tsls$stage1)
 summary(mod_tsls, robust = TRUE)
 
-stargazer(mod_tsls, type = "html", title = "שלב ראשון",  out = "first step.html")
-stargazer(mod_tsls$stage1, type = "html", title = "IV אמידת",  out = "modelq11p2.html")
+modelq11p1 = lm(sfp_signup ~ sfp_offer, filtered_data)
+summary(modelq11p1)
+cov(filtered_data$sfp_offer, filtered_data$sfp_signup)
+#H0 : cov(sfp_offer,sfp_signup) = 0 #############################################################
+linearHypothesis(modekq11p1, "sfp_offer")
+
+
+predicted_signup = predict(modelq11p1)
+modelq11p2 = lm(first_sem_grade ~ predicted_signup, filtered_data)
+summary(modelq11p2)
+stargazer(modelq11p1, type = "html", title = "שלב ראשון",  out = "first step.html")
+stargazer(modelq11p2, type = "html", title = "IV אמידת",  out = "modelq11p2.html")
