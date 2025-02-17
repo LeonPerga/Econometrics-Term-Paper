@@ -97,7 +97,7 @@ htmlreg(model2, file = "P3Q4.html", custom.columns = c("Intercept", "Dummy varia
 ### Let's throw all variables into one regression ###
 
 model_test_controls = lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA + age + female + english + dad_HS_grad + dad_college_grad + mom_HS_grad + mom_college_grad + 
-                           uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans  + last_min +sfp_signup + ssp_signup , data)
+                           uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans  + last_min +sfp_signup + sfp_signup , data)
 # Out put model to html for the document.
 htmlreg(model_test_controls, file = "P3Q5.html", digits = 2,, stars = c(0.01, 0.05, 0.1), custom.model.names = c("TABLE 5 - Affects on academic preformance") )
 
@@ -115,7 +115,7 @@ model_test_controls_robust = coeftest(model_test_controls, vcov = vcovHC(model_t
 # Out put model to html for the document.
 htmlreg(model_test_controls_robust, file = "P3Q5_2.html", digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("TABLE 6 - Fixed heteroskedasticity") )
 
-## Parents education is muilticolinear ##
+## Parents education is often muilticolinear ##
 print(vcov(model_test_controls)[c(8,9,10,11),c(8,9,10,11)])
 stargazer(vcov(model_test_controls)[c(8,9,10,11),c(8,9,10,11)], type = "text", title = "TABLE 7: vcov-matrix", out = "vcov.html")
 
@@ -170,7 +170,7 @@ htmlreg(model_test_controls_3_robust, file = "P3Q5_2.html", digits = 2,, stars =
 
 summary(model_test_controls_3)
 
-## A bit lower st.d and higher R2, we will keep finish_in_4_yrs in the model ##
+## A bit lower st.d and higher R2, in addition to theoretical logic and P-value close to significance we will decide to keep finish_in_4_yrs in the model ##
 
 ### After getting rid of variables that are not affecting first_sem_grade, it's time to check cov of coeffs ###
 
@@ -192,7 +192,8 @@ linearHypothesis(model_test_controls_2, c(
   "age = 0"),
   vcov. = robust_se_2)
 
-### The effects of all variables are negligable together, however they are significantly not all 0. meaning they exist. and so are very good control variables ###
+
+### The effects of all variables are significantly not 0 together, and so are relevant and can be kept in the model###
 
 mode_controls = coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))
 
@@ -247,6 +248,8 @@ P3Q8_data["abv_med_sfp_offer"] = P3Q8_data$sfp_offer*P3Q8_data$abv_med
 # We can see same model as q8
 model_q82 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med_sfp_offer, P3Q8_data)
 summary(model_q82)
+
+sqrt(sum(model_q82$residuals^2))/model_q82$df.residual
 white_test(model_q82)
 
 
@@ -254,7 +257,7 @@ white_test(model_q82)
 linearHypothesis(model_q82, c("abv_med_sfp_offer = 0"))
 
 # Output model to html
-htmlreg(model_q8, file = "P3Q8.html", custom.columns = c("Intercept", "Dummy variable for belonging to SFP group", "Dummy variable for having HS GPA above median", "Interactio dummy variable"),
+htmlreg(model_q8, file = "P3Q8.html", custom.columns = c("Intercept", "Dummy variable for belonging to SFP group", "Dummy variable for having HS GPA above median", "Interaction dummy variable"),
         digits = 2, stars = c(0.001, 0.05,0.1), custom.model.names = c("How SFP Effects grades for students with or without GPA above median") )
 
 
@@ -274,8 +277,12 @@ summary(means_table2)
 stargazer(means_table2, type = "html", title = "",  out = "means_table2.html")
 
 ### The variables seems endogenous, especially sfp_offer ### 
-plot(data$sfp_offer , model2$residuals^2)
-plot(data$ssp_offer , model2$residuals^2)
+plot(data$finish_in_4_yrs , model5$residuals^2)
+cov(data$age , model5$residuals^2)
+
+model3 = lm(first_sem_grade ~ sfp_offer, data)
+white_test(model3)
+plot(data$ssp_offer , model3$residuals^2)
 
 #Q10
 modelq10 = lm(first_sem_grade ~ sfp_signup,filtered_data)
