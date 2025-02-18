@@ -369,11 +369,12 @@ linearHypothesis(model5, c("sfp_offer =0", "ssp_offer = 0"), vcov. =  vcovHC(mod
 # Implications discussed in the document
 
 # --- QUESTION 8 (P3Q8) --------------------------------
-# subsetting the data to include only students allocated to SFP and Control groups
-P3Q8_data = subset(data, data$sfp_offer == 1 | data$control == 1)
 
 #Adding dummy variable - 1 if HS GPA is above the median, 0 otherwise
-P3Q8_data["abv_med"] = ifelse(P3Q8_data$HS_GPA > median(P3Q8_data$HS_GPA), 1, 0)
+data["abv_med"] = ifelse(P3Q8_data$HS_GPA > median(P3Q8_data$HS_GPA), 1, 0)
+
+# sub-setting the data to include only students allocated to SFP and Control groups
+P3Q8_data = subset(data, data$sfp_offer == 1 | data$control == 1)
 
 # Interaction model for students above median HS GPA
 model_q8 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med*sfp_offer , P3Q8_data)
@@ -381,14 +382,18 @@ model_q8 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med*sfp_offer , P3Q8_
 # Check for heteroskedasticity
 white_test(model_q8)
 # homoscedasticity is preserved when rounding down
-model_q8_robust = coeftest(model_q8, vcov = vcovHC(model5, type = "HC1"))
 
 # Hypothesis testing for interaction term
-linearHypothesis(model_q8, c("sfp_offer:abv_med  = 0"), robust = TRUE)
+linearHypothesis(model_q8, c("sfp_offer:abv_med  = 0"))
 
 # Output model to html
-htmlreg(model_q8, file = "Table13.html", custom.columns = c("Intercept", "Dummy variable for belonging to SFP group", "Dummy variable for having HS GPA above median", "Interaction dummy variable"),
-        digits = 2, stars = c(0.001, 0.05,0.1), custom.model.names = c("Table 13: How SFP Effects grades for students with or without GPA above median"), include.rsquared = TRUE )
+htmlreg(model_q8, file = "Table13.html", # Naming the file
+        custom.columns = #Adding custom column of descriptions of the variables
+          c("Intercept", "Dummy variable for belonging to SFP group", 
+            "Dummy variable for having HS GPA above median", "Interaction dummy variable"),
+        digits = 2, stars = c(0.001, 0.05,0.1), # Check significance for 0.01, 0.05, and 0.1
+        custom.model.names = c("Table 13: How SFP Effects grades for students with or without GPA above median"), # Naming the table
+        include.rsquared = TRUE ) # Include in the table the R^2 
 
 
 
@@ -396,55 +401,85 @@ htmlreg(model_q8, file = "Table13.html", custom.columns = c("Intercept", "Dummy 
 #############################################################
 
 # --- QUESTION 9 (P4Q9) --------------------------------
+
 # Summary statistics for students who accepted vs. rejected SFP
-data["abv_med"] = ifelse(data$HS_GPA > median(data$HS_GPA), 1, 0)
 filtered_data = filter(data, sfp_offer == 1 | control == 1 )
+
+# Filter the data to include only rows where either sfp_offer or control is 1
+
+# Calculate mean for students who accepted the SFP (sfp_signup = 1)
 mean_accepted = colMeans(filter(filtered_data, sfp_signup == 1 & sfp_offer == 1))
+
+# Calculate mean for students who rejected the SFP (sfp_signup = 0)
 mean_rejected = colMeans(filter(filtered_data, sfp_signup == 0 & sfp_offer == 1))
+
+# Set column names to match the original data for both mean_accepted and mean_rejected
 names(mean_accepted) = names(data)
 names(mean_rejected) = names(data)
-means_table2 = cbind(mean_rejected, mean_accepted)
-columns_to_select = append(columns_to_select, "abv_med")
-means_table2 = means_table2[columns_to_select,]
-colnames(means_table2)=c("rejected the sfp program","accpted the sfp program")
-summary(means_table2)
-stargazer(means_table2, type = "html", title = "Table 14: Differances between backgrounds variables in acceptance and rejection subsets",  out = "Table14.html")
 
-linearHypothesis(model_q8, c("sfp_offer + sfp_offer:abv_med = 0"), robust = TRUE)
+# Combine the mean values for rejected and accepted students into a table
+means_table2 = cbind(mean_rejected, mean_accepted)
+
+# Add "abv_med" column to the selection of columns to include in the final table
+columns_to_select = append(columns_to_select, "abv_med")
+
+# Select only the columns specified in 'columns_to_select'
+means_table2 = means_table2[columns_to_select,]
+
+# Rename the columns to clearly indicate which group (rejected or accepted) the means represent
+colnames(means_table2)=c("rejected the sfp program","accpted the sfp program")
+
+# Use stargazer to generate a formatted table in HTML format
+stargazer(means_table2, type = "html", 
+          title = "Table 14: Differances between backgrounds variables in acceptance and rejection subsets",  # Naming the table
+          out = "Table14.html") # Naming the file
 
 # --- QUESTION 10 (P4Q10) --------------------------------
+# Filter the data for students who received SFP offer or no offer at all, in other words
+# filter out students who got offered to participate in the SSP treatment
 data_q10 = filter(data, ssp_offer == 0)
 
+# Fit a linear regression model to estimate the effect of "sfp_signup" on "first_sem_grade"
 modelq10 = lm(first_sem_grade ~ sfp_signup,data_q10)
 
+# Perform the White test for heteroscedasticity
 white_test(modelq10)
-summary(modelq10)
-stargazer(modelq10, type = "html", title = "Table 15: אמידת ההשפעה של השתתפות הטיפול על ממוצע הציונים",  out = "Table15.html")
+# Homoscedasticity is preserved when rounding down
+
+# Create a table summarizing the results of the regression in HTML format using stargazer
+stargazer(modelq10, 
+          type = "html", 
+          title = "Table 15: אמידת ההשפעה של השתתפות הטיפול על ממוצע הציונים",  # Naming the table
+          out = "Table15.html") # Naming the file
 
 
 # --- QUESTION 11 (P4Q11) --------------------------------
 
-#H0 : cov(sfp_offer,sfp_signup) = 0 
-
-# First-stage regression
+# First-stage regression: Estimate the effect of 'sfp_offer' on 'sfp_signup
 modelq11p1 = lm(sfp_signup ~ sfp_offer, filtered_data)
-summary(modelq11p1)
-cov(filtered_data$sfp_offer, filtered_data$sfp_signup)
-linearHypothesis(modelq11p1, "sfp_offer") #H0 : cov(sfp_offer,sfp_signup) = 0
-coeftest(modelq11p1, vcov = vcovHC(modelq11p1, type = "HC1"))
+
+# We expect heteroskedasticity because this model is a LPM model
+# Therefore, we use the White test to check for heteroscedasticity
+white_test(modelq11p1)
+# As expected we can reject H0
+
+# Now we test the estimator for 'sfp_offer' to check if the covariance between 'sfp_offer' and 'sfp_signup' exists
+# Null hypothesis (H0): sfp_offer coefficient = 0 (no relationship)
+# Alternative hypothesis (H1): sfp_offer coefficient != 0 (there is a relationship)
+linearHypothesis(modelq11p1, "sfp_offer", robust = TRUE) #H0 : sfp_offer = 0 | H1 : sfp_offer != 0
+
+# Use the first-stage model to predict the values of 'sfp_signup'
 predicted_signup = predict(modelq11p1)
 
-stargazer(linearHypothesis(modelq11p1, "sfp_offer=0"),type = "html", title = "Table 16: SFP בדיקת מתאם בין הרשמה להשתתפות בתכנית  ",  out = "Table16.html")
-
-
-# Second-stage regression
+# Second-stage regression: Estimate the effect of predicted 'sfp_signup' on 'first_sem_grade'
+# This is part of the 2SLS (two-stage least squares) met
 modelq11p2 = lm(first_sem_grade ~ predicted_signup, filtered_data)
 summary(modelq11p2)
 
 # Output first and second stage results
-stargazer(modelq11p1, type = "html", title = "Table 17: שלב ראשון",  out = "Table17.html")
-stargazer(coeftest(modelq11p1, vcov = vcovHC(modelq11p1, type = "HC1")), type = "html", title = "Table 18: שלב ראשון עם תיקון לשונות",  out = "Table18.html")
-stargazer(modelq11p2, type = "html", title = "Table 19: IV אמידת",  out = "Table19.html")
+stargazer(modelq11p1, type = "html", title = "Table 16: שלב ראשון",  out = "Table16.html")
+stargazer(coeftest(modelq11p1, vcov = vcovHC(modelq11p1, type = "HC1")), type = "html", title = "Table 17: שלב ראשון עם תיקון לשונות",  out = "Table17.html")
+stargazer(modelq11p2, type = "html", title = "Table 18: IV אמידת",  out = "Table18.html")
 
 print("Done!")
 
