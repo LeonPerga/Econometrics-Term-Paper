@@ -14,14 +14,15 @@ library("lfe")        # for fixed-effects regression models
 data <- read.csv("term_paper_data.csv")
 
 # Set options for output formatting
-options(digits = 2, scipen = 999)
+options(digits = 4, scipen = 999)
 
 # Filter the data based on treatment groups
 sfp = filter(data, sfp_offer == 1)
 ssp = filter(data, ssp_offer == 1)
 control = filter(data, control == 1)
 
-#NOTE: first column is student id and is not a metric
+# NOTE: first column is student id and is not a metric
+
 # Calculate column means for each treatment group
 sfp_means = colMeans(sfp)
 names(sfp_means) = names(sfp)
@@ -56,13 +57,13 @@ descriptions <- c(
 
 # Create a table combining means from different treatment group
 means_table = cbind(t(t(sfp_means)), t(t(ssp_means)), t(t(control_means)))
-means_table = means_table[columns_to_select,]
-means_table = cbind(descriptions, means_table)
-colnames(means_table) = c("descriptions", "SFP", "SSP", "Control")
+means_table = means_table[columns_to_select,] # Select relevant columns
+means_table = cbind(descriptions, means_table) # Add descriptions column
+colnames(means_table) = c("descriptions", "SFP", "SSP", "Control") # Rename columns
 
 
 # Output the table of means to an HTML file
-stargazer(means_table, type = "text", title = "means_table",  out = "Means_Table.html")
+stargazer(means_table, type = "text", title = "Table 1: means of groups",  out = "Table1.html")
 
 # --- PART 2 - QUESTION 3 (P2Q3) --------------------------------
 # Subset data for specific treatment groups (SSP and Control)
@@ -76,8 +77,7 @@ model1 = lm(ssp_offer ~ HS_GPA + age + female + english + dad_HS_grad + dad_coll
 model1_fixed = coeftest(model1, vcov = vcovHC(model1, type = "HC1"))
 
 # Output the results to an HTML table
-stargazer(model1_fixed, type = "text", title = "model1", out = "model1.html")
-htmlreg(model1_fixed, file = "table2.html", custom.columns = c("החותך", descriptions), digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 1— Contrasts by treatment of SSP"))
+htmlreg(model1_fixed, file = "Table2.html", custom.columns = c("החותך", descriptions), digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 2: Contrasts by treatment of SSP"), include.rsquared = TRUE)
 
 # Test the hypothesis that all coefficients are zero
 linearHypothesis(model1, c(
@@ -101,6 +101,7 @@ linearHypothesis(model1, c(
 ########################################################
 # --- QUESTION 4 (P3Q4) --------------------------------
 
+# Fit a model for first semester grades based on treatment groups
 model2 = lm(first_sem_grade ~ ssp_offer + sfp_offer, data)
 summary(model2)
 
@@ -108,18 +109,18 @@ summary(model2)
 white_test(model2)
 
 # Output model to html for the document.
-htmlreg(model2, file = "P3Q4.html", custom.columns = c("Intercept", "Dummy variable for belonging to SSP group", "Dummy variable for belonging to SFP group"),
-        digits = 2, , stars = c(0.01, 0.05, 0.1), custom.model.names = c("Treatment Effects on First Year Outcomes in the Sample with Fall Grades") )
+htmlreg(model2, file = "Table3.html", custom.columns = c("Intercept", "Dummy variable for belonging to SSP group", "Dummy variable for belonging to SFP group"),
+        digits = 2, , stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 3: Intent of Treatment Effects on First Year Outcomes in the Sample with Fall Grades"), include.rsquared = TRUE )
 
 # --- QUESTION 5 (P3Q5) --------------------------------
 
 # Fit a model with all variables as controls
 
 model_test_controls = lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA + age + female + english + dad_HS_grad + dad_college_grad + mom_HS_grad + mom_college_grad + 
-                           uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans  + last_min +sfp_signup + sfp_signup , data)
+                           uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans  + last_min +sfp_signup + ssp_signup , data)
 
-# Out put model to html for the document.
-htmlreg(model_test_controls, file = "P3Q5.html", digits = 2,, stars = c(0.01, 0.05, 0.1), custom.model.names = c("TABLE 5 - Affects on academic preformance") )
+# Output model to html for the document.
+htmlreg(model_test_controls, file = "Table4.html", digits = 2,, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 4 - Model 1"), include.rsquared = TRUE )
 
 # Test for heteroskedasticity
 white_test(model_test_controls)
@@ -130,12 +131,12 @@ model_test_controls_robust = coeftest(model_test_controls, vcov = vcovHC(model_t
 # Robust standard errors in the model
 robust_se = vcovHC(model_test_controls, type = "HC1")
 
-# Output model to html for the document.
-htmlreg(model_test_controls_robust, file = "P3Q5_2.html", digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("TABLE 6 - Fixed heteroskedasticity") )
+# Output model to html with fixed heteroskedasticity
+htmlreg(model_test_controls_robust, file = "Table5.html", digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 5 - Model 1 with fixed heteroskedasticity") , include.rsquared = TRUE )
 
 # Check for multicollinearity in parental education variables
 print(vcov(model_test_controls)[c(8,9,10,11),c(8,9,10,11)])
-stargazer(vcov(model_test_controls)[c(8,9,10,11),c(8,9,10,11)], type = "text", title = "TABLE 7: vcov-matrix", out = "vcov.html")
+stargazer(vcov(model_test_controls)[c(8,9,10,11),c(8,9,10,11)], type = "text", title = "Table 6: vcov-matrix", out = "Table6.html")
 
 # Test if parental education variables can be jointly zero
 linearHypothesis(model_test_controls, c(
@@ -148,7 +149,7 @@ linearHypothesis(model_test_controls, c(
 # Only age, HS_GPA, female, english and finish_in_4_yrs are significant alone
 # Are all the other at least significant together?
 
-# Test for not-zero  of coefficients of all non-significant variables together
+# Test the joint significance of non-significant variables
 linearHypothesis(model_test_controls, c(
   "dad_HS_grad = 0",
   "dad_college_grad = 0",
@@ -180,10 +181,11 @@ model_test_controls_2_robust = coeftest(model_test_controls_2, vcov = vcovHC(mod
 
 
 # Define the covariance and summary functions
-vcov = vcovHC(model_test_controls_2, type = "HC1")
+vcov = vcovHC(model_test_controls_2, type = "HC1") ###################!!!!!!!!!!!!!!!!!!!!!!
 
 # Output the model with fixed heteroskedasticity to HTML
-htmlreg(model_test_controls_2_robust, file = "P3Q5_2.html", digits = 2,, stars = c(0.01, 0.05, 0.1), custom.model.names = c("TABLE 9 - Fixed heteroskedasticity") )
+htmlreg(model_test_controls_2, file = "Table7.html", digits = 2,, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 7 - Model 2"), include.rsquared = TRUE )
+htmlreg(model_test_controls_2_robust, file = "Table8.html", digits = 2,, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 8 - Model 2 Fixed heteroskedasticity"), include.rsquared = TRUE )
 summary(model_test_controls_2)
 
 # Model without 'finish_in4_yrs'
@@ -196,8 +198,8 @@ white_test(model_test_controls_3)
 model_test_controls_3_robust = coeftest(model_test_controls_3, vcov = vcovHC(model_test_controls_2, type = "HC1"))
 
 # Output model to html for the document
-htmlreg(model_test_controls_3_robust, file = "P3Q5_2.html", digits = 2,, stars = c(0.01, 0.05, 0.1), custom.model.names = c("TABLE 10 - removed finish_in_4_yrs") )
-
+htmlreg(model_test_controls_3, file = "Table9.html", digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 9 - Model 3"), include.rsquared = TRUE )
+htmlreg(model_test_controls_3_robust, file = "Table10.html", digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 10 - Model 3 Fixed heteroskedasticity"), include.rsquared = TRUE )
 summary(model_test_controls_3)
 
 # We observe a bit lower st.d and higher R2, p-value close to 0.1
@@ -205,8 +207,7 @@ summary(model_test_controls_3)
  
 # Check covariance of coefficients
 print(vcov(model_test_controls_2))
-stargazer(vcov(model_test_controls_2)[c(8,9,10,11),c(8,9,10,11)], type = "text", title = "TABLE 11: vcov-matrix 2", out = "vcov.html")
-stargazer(vcov(model_test_controls_2)[2:8, 2:8], type = "text", title = "TABLE 11: vcov-matrix_2", out = "vcov2.html")
+stargazer(vcov(model_test_controls_2)[2:8, 2:8], type = "text", title = "Table 11: vcov-matrix 2_2", out = "Table11.html")
 
 # Robust standard errors in the model
 robust_se_2 = vcovHC(model_test_controls_2, type = "HC1")
@@ -264,9 +265,9 @@ affects_table =
         Year_2 = c(unname(model5$coefficients[2]), model5_robust[1, "Std. Error"] , unname(model5$coefficients[3]), model5_robust[1, "Std. Error"]))
 
 # Output table to html for the document
-stargazer(affects_table, type = "text", title = "Affects_Table",  out = "Affects_Table.html")
+stargazer(affects_table, type = "text", title = "Table 12: Affects over time_Table",  out = "Table12.html")
 
-# --- QUESTION 6 (P3Q6) --------------------------------
+# --- QUESTION 8 (P3Q8) --------------------------------
 # subsetting the data to include only students allocated to SFP and Control groups
 P3Q8_data = subset(data, data$sfp_offer == 1 | data$control == 1)
 
@@ -278,27 +279,16 @@ model_q8 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med*sfp_offer , P3Q8_
 
 # Check for heteroskedasticity
 white_test(model_q8)
-# homoscedasticity is preserved
-
-summary(model_q8)
-coeftest(model_q8, vcov = vcovHC(model5, type = "HC1"))
-
-# Adding interaction dummy variable
-P3Q8_data["abv_med_sfp_offer"] = P3Q8_data$sfp_offer*P3Q8_data$abv_med
-# We can see same model as q8
-model_q82 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med_sfp_offer, P3Q8_data)
-summary(model_q82)
-
-# Check for heteroskedasticity
-white_test(model_q82)
 # homoscedasticity is NOT preserved
+model_q8_robust = coeftest(model_q8, vcov = vcovHC(model5, type = "HC1"))
 
 # Hypothesis testing for interaction term
-linearHypothesis(model_q82, c("abv_med_sfp_offer = 0"))
+linearHypothesis(model_q8, c("sfp_offer:abv_med  = 0"), robust = TRUE)
 
 # Output model to html
-htmlreg(model_q8, file = "P3Q8.html", custom.columns = c("Intercept", "Dummy variable for belonging to SFP group", "Dummy variable for having HS GPA above median", "Interaction dummy variable"),
-        digits = 2, stars = c(0.001, 0.05,0.1), custom.model.names = c("How SFP Effects grades for students with or without GPA above median") )
+htmlreg(model_q8_robust, file = "Table13.html", custom.columns = c("Intercept", "Dummy variable for belonging to SFP group", "Dummy variable for having HS GPA above median", "Interaction dummy variable"),
+        digits = 2, stars = c(0.001, 0.05,0.1), custom.model.names = c("Table 13: How SFP Effects grades for students with or without GPA above median"), include.rsquared = TRUE )
+
 
 
 ### PART 4 - ANALYSIS OF INVOLVEMENT IN TREATMENT AFFECTS ###
@@ -306,35 +296,42 @@ htmlreg(model_q8, file = "P3Q8.html", custom.columns = c("Intercept", "Dummy var
 
 # --- QUESTION 9 (P4Q9) --------------------------------
 # Summary statistics for students who accepted vs. rejected SFP
+data["abv_med"] = ifelse(data$HS_GPA > median(data$HS_GPA), 1, 0)
 filtered_data = filter(data, sfp_offer == 1 | control == 1 )
 mean_accepted = colMeans(filter(filtered_data, sfp_signup == 1 & sfp_offer == 1))
 mean_rejected = colMeans(filter(filtered_data, sfp_signup == 0 & sfp_offer == 1))
 names(mean_accepted) = names(data)
 names(mean_rejected) = names(data)
 means_table2 = cbind(mean_rejected, mean_accepted)
+columns_to_select = append(columns_to_select, "abv_med")
 means_table2 = means_table2[columns_to_select,]
-colnames(means_table2)=c("accpted the sfp program","rejected the sfp program")
+colnames(means_table2)=c("rejected the sfp program","accpted the sfp program")
 summary(means_table2)
-stargazer(means_table2, type = "html", title = "",  out = "means_table2.html")
+stargazer(means_table2, type = "html", title = "Table 14: Differances between backgrounds variables in acceptance and rejection subsets",  out = "Table14.html")
 
+linearHypothesis(model_q8, c("sfp_offer + sfp_offer:abv_med = 0"), robust = TRUE)
 
 # --- QUESTION 10 (P4Q10) --------------------------------
-# Summary statistics for students who accepted vs. rejected SFP
-modelq10 = lm(first_sem_grade ~ sfp_signup,filtered_data)
-summary(modelq10)
+data_q10 = filter(data, ssp_offer == 0)
+
+modelq10 = lm(first_sem_grade ~ sfp_signup,data_q10)
+
 white_test(modelq10)
+summary(modelq10)
+stargazer(modelq10, type = "html", title = "Table 15: אמידת ההשפעה של השתתפות הטיפול על ממוצע הציונים",  out = "Table15.html")
 
 
 # --- QUESTION 11 (P4Q11) --------------------------------
-mod_tsls = felm(formula = first_sem_grade ~ 1 | 0 | (sfp_signup ~ sfp_offer) | 0, data = filtered_data)
-summary(mod_tsls$stage1)
-summary(mod_tsls, robust = TRUE)
+
+#H0 : cov(sfp_offer,sfp_signup) = 0 
+stargazer(linearHypothesis(modelq11p1, "sfp_offer=0"),type = "html", title = "Table 16: SFP בדיקת מתאם בין הרשמה להשתתפות בתכנית  ",  out = "Table16.html")
 
 # First-stage regression
 modelq11p1 = lm(sfp_signup ~ sfp_offer, filtered_data)
 summary(modelq11p1)
 cov(filtered_data$sfp_offer, filtered_data$sfp_signup)
 linearHypothesis(modelq11p1, "sfp_offer") #H0 : cov(sfp_offer,sfp_signup) = 0
+coeftest(modelq11p1, vcov = vcovHC(modelq11p1, type = "HC1"))
 predicted_signup = predict(modelq11p1)
 
 # Second-stage regression
@@ -342,5 +339,9 @@ modelq11p2 = lm(first_sem_grade ~ predicted_signup, filtered_data)
 summary(modelq11p2)
 
 # Output first and second stage results
-stargazer(modelq11p1, type = "html", title = "שלב ראשון",  out = "first step.html")
-stargazer(modelq11p2, type = "html", title = "IV אמידת",  out = "modelq11p2.html")
+stargazer(modelq11p1, type = "html", title = "Table 17: שלב ראשון",  out = "Table17.html")
+stargazer(coeftest(modelq11p1, vcov = vcovHC(modelq11p1, type = "HC1")), type = "html", title = "Table 18: שלב ראשון עם תיקון לשונות",  out = "Table18.html")
+stargazer(modelq11p2, type = "html", title = "Table 19: IV אמידת",  out = "Table19.html")
+
+print("Done!")
+
