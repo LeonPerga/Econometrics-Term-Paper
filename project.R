@@ -279,15 +279,15 @@ linearHypothesis(model_test_controls_2, c("sfp_offer = ssp_offer"), vcov. = robu
 # F statistic is 0.077, we will not reject the null hypothesis at a = 0.1, sfp_offer is not ssp_offer
 
 # --- QUESTION 7 (P3Q7) --------------------------------
+# To save space in the document we will create 3 models
+# And save the estimators of SFP and SSP to a table
+# We already have model_controls for the first semester
+
 # Define model for GPA over year1
 model4 = lm(GPA_year1 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
 # White test
 white_test(model4)
 # homoscedasticity is preserved
-
-
-linearHypothesis(model4, c("sfp_offer =0", "ssp_offer = 0"))
-
 
 # Define model for GPA over year2
 model5 = lm(GPA_year2 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
@@ -297,53 +297,76 @@ white_test(model5)
 # homoscedasticity is NOT preserved
 model5_robust = coeftest(model5, vcov = vcovHC(model5, type = "HC1"))
 
-linearHypothesis(model5, c("sfp_offer =0", "ssp_offer = 0"), vcov. =  vcovHC(model5, type = "HC1"))
-
 # Create summary table of treatment effects
 affects_table = 
   rbind(
-        Fall_Semester = c(unname(model_test_controls_2$coefficients[2]),
-                          model_controls[2, "Std. Error"],
+    
+        #Values for the first semester model
+        Fall_Semester = c(
+          unname(model_test_controls_2$coefficients[2]), # SFP estimator
+                          model_controls[2, "Std. Error"], # SFP Std, Error
                           (1- pt(
                             abs(unname(model_test_controls_2$coefficients[2])/model_controls[2, "Std. Error"]), 
                             summary(model_test_controls_2)$df[2])
-                           )*2 , 
-                          unname(model_test_controls_2$coefficients[3]), 
-                          model_controls[3, "Std. Error"],  
+                           )*2 , # The p-value of SFP, calculated t test "manually"
+                          unname(model_test_controls_2$coefficients[3]), # SSP estimator
+                          model_controls[3, "Std. Error"],  # SSP Std, Error
                           (1- pt(
                             abs(unname(model_test_controls_2$coefficients[3])/model_controls[3, "Std. Error"]), 
-                            summary(model_test_controls_2)$df[2]))*2),
-        Year_1 = c(unname(model4$coefficients[2]), 
-                   summary(model4)$coefficients[2, "Std. Error"], 
+                            summary(model_test_controls_2)$df[2]))*2), # The p-value of SSP, calculated t test "manually"
+        
+        # Values for the first year model
+        Year_1 = c(unname(model4$coefficients[2]), # SFP estimator
+                   summary(model4)$coefficients[2, "Std. Error"], # SFP Std, Error
                    (1- pt(
                      abs(unname(model4$coefficients[2])/summary(model4)$coefficients[2, "Std. Error"]), 
                      summary(model4)$df[2])
-                   )*2 ,
-                   unname(model4$coefficients[3]),
-                   summary(model4)$coefficients[3, "Std. Error"],
+                   )*2 , # The p-value of SFP, calculated t test "manually"
+                   unname(model4$coefficients[3]), # SSP estimator
+                   summary(model4)$coefficients[3, "Std. Error"], # SSP Std, Error
                    (1- pt(
                      abs(unname(model4$coefficients[3])
                      /summary(model4)$coefficients[3, "Std. Error"]), 
                      summary(model4)$df[2])
-                   )*2 ),
-        Year_2 = c(unname(model5$coefficients[2]), 
-                   model5_robust[2, "Std. Error"] , 
+                   )*2 ), # The p-value of SSP, calculated t test "manually"
+        
+        # Values for the second year model
+        Year_2 = c(unname(model5$coefficients[2]), # SFP estimator
+                   model5_robust[2, "Std. Error"] , # SFP Std, Error
                    (1- pt(
                     abs( unname(model5$coefficients[2])
                      /model5_robust[2, "Std. Error"]), 
                      summary(model5)$df[2])
-                   )*2 ,
-                   unname(model5$coefficients[3]), 
-                   model5_robust[3, "Std. Error"],
+                   )*2 ,  # The p-value of SFP, calculated t test "manually"
+                   unname(model5$coefficients[3]), # SSP estimator
+                   model5_robust[3, "Std. Error"], # SSP Std, Error
                    (1- pt(
                      abs(unname(model5$coefficients[3])
                      /model5_robust[3, "Std. Error"]), 
                      summary(model5)$df[2])
-                   )*2 ))
+                   )*2 )) # The p-value of SSP, calculated t test "manually"
+
+# Add column names to the table
 colnames(affects_table) <- c("SFP", "std. Error" , "P-val" , "SSP",  "std. Error " , "P-val " )
 
 # Output table to html for the document
 stargazer(affects_table, type = "text", title = "Table 12: Affects over time_Table",  out = "Table12.html")
+
+#The variables are not significant after the first semester, but are they significant together?
+
+# Are the variables significant together after year 2?
+linearHypothesis(model_test_controls_2, c("sfp_offer =0", "ssp_offer = 0"), vcov. =  vcovHC(model_test_controls_2, type = "HC1"))
+# No
+
+# Are the variables significant together after year 1?
+linearHypothesis(model4, c("sfp_offer =0", "ssp_offer = 0"))
+# No
+
+# Are the variables significant together after year 2?
+linearHypothesis(model5, c("sfp_offer =0", "ssp_offer = 0"), vcov. =  vcovHC(model5, type = "HC1"))
+# No
+
+# Implications discussed in the document
 
 # --- QUESTION 8 (P3Q8) --------------------------------
 # subsetting the data to include only students allocated to SFP and Control groups
@@ -402,7 +425,6 @@ stargazer(modelq10, type = "html", title = "Table 15: אמידת ההשפעה ש
 # --- QUESTION 11 (P4Q11) --------------------------------
 
 #H0 : cov(sfp_offer,sfp_signup) = 0 
-stargazer(linearHypothesis(modelq11p1, "sfp_offer=0"),type = "html", title = "Table 16: SFP בדיקת מתאם בין הרשמה להשתתפות בתכנית  ",  out = "Table16.html")
 
 # First-stage regression
 modelq11p1 = lm(sfp_signup ~ sfp_offer, filtered_data)
@@ -411,6 +433,9 @@ cov(filtered_data$sfp_offer, filtered_data$sfp_signup)
 linearHypothesis(modelq11p1, "sfp_offer") #H0 : cov(sfp_offer,sfp_signup) = 0
 coeftest(modelq11p1, vcov = vcovHC(modelq11p1, type = "HC1"))
 predicted_signup = predict(modelq11p1)
+
+stargazer(linearHypothesis(modelq11p1, "sfp_offer=0"),type = "html", title = "Table 16: SFP בדיקת מתאם בין הרשמה להשתתפות בתכנית  ",  out = "Table16.html")
+
 
 # Second-stage regression
 modelq11p2 = lm(first_sem_grade ~ predicted_signup, filtered_data)
