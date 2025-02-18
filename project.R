@@ -14,7 +14,7 @@ library("lfe")        # for fixed-effects regression models
 data <- read.csv("term_paper_data.csv")
 
 # Set options for output formatting
-options(digits = 4, scipen = 999)
+options(digits = 3, scipen = 999)
 
 ### PART 2 - DESCRIPTION OF THE DATA & ALLOCATION BALANCE ###
 ########################################################
@@ -67,7 +67,8 @@ colnames(means_table) = c("descriptions", "SFP", "SSP", "Control") # Rename colu
 
 
 # Output the table of means to an HTML file
-stargazer(means_table, type = "text", title = "Table 1: means of groups",  out = "Table1.html")
+stargazer(means_table, type = "text", title = "Table 1: means of groups", # Naming the table
+          out = "Table1.html") # Naming the file
 
 # --- QUESTION 3 (P2Q3) --------------------------------
 # Subset data for specific treatment groups (SSP and Control)
@@ -84,7 +85,7 @@ model1 = lm(ssp_offer ~ HS_GPA + age + female + english +
 model1_fixed = coeftest(model1, vcov = vcovHC(model1, type = "HC1"))
 
 # Output the results to an HTML table
-htmlreg(model1_fixed, file = "Table2.html",
+htmlreg(model1_fixed, file = "Table2.html", # Naming the file
         custom.columns = c("החותך", descriptions), # Add descriptions column
         digits = 2, stars = c(0.01, 0.05, 0.1),    # Check significance for 0.01, 0.05, and 0.1
         custom.model.names = c("Table 2: Contrasts by treatment of SSP"), # Naming The table
@@ -121,7 +122,7 @@ summary(model2)
 white_test(model2)
 
 # Output model to html for the document.
-htmlreg(model2, file = "Table3.html", 
+htmlreg(model2, file = "Table3.html", # Naming the file
         custom.columns = c( #Adding custom column of descriptions of the variables
           "Intercept",
           "Dummy variable for belonging to SSP group", 
@@ -141,7 +142,7 @@ model_test_controls = lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA
                            live_home + work_plans  + last_min +sfp_signup + ssp_signup , data)
 
 # Output model to html for the document.
-htmlreg(model_test_controls, file = "Table4.html", 
+htmlreg(model_test_controls, file = "Table4.html",  # Naming the file
         digits = 2,, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
         custom.model.names = c("Table 4 - Model 1"), #Naming the table
         include.rsquared = TRUE ) # Include in the table the R^2 
@@ -156,7 +157,10 @@ model_test_controls_robust = coeftest(model_test_controls, vcov = vcovHC(model_t
 robust_se = vcovHC(model_test_controls, type = "HC1")
 
 # Output model to html with fixed heteroskedasticity
-htmlreg(model_test_controls_robust, file = "Table5.html", digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 5 - Model 1 with fixed heteroskedasticity") , include.rsquared = TRUE )
+htmlreg(model_test_controls_robust, file = "Table5.html", # Naming the file
+        digits = 2, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
+        custom.model.names = c("Table 5 - Model 1 with fixed heteroskedasticity"), # Naming the table
+        include.rsquared = TRUE ) # Include in the table the R^2 
 
 # Check for multicollinearity in parental education variables
 stargazer(vcov(model_test_controls)[c(8,9,10,11),c(8,9,10,11)], type = "text", title = "Table 6: vcov-matrix", out = "Table6.html")
@@ -202,29 +206,28 @@ white_test(model_test_controls_2)
 # Fix heteroskedasticity using robust standard errors
 model_test_controls_2_robust = coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))
 
-
 # Define the covariance and summary functions
 vcov = vcovHC(model_test_controls_2, type = "HC1") ###################!!!!!!!!!!!!!!!!!!!!!!
 
 # Output the model to HTML for the document
-htmlreg(model_test_controls_2, file = "Table7.html", 
+htmlreg(model_test_controls_2, file = "Table7.html", # Naming the file
         digits = 2,, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
         custom.model.names = c("Table 7 - Model 2"), #Naming the table
         include.rsquared = TRUE )#Include in the table the R^2
 
 # Output the fixed\robust model to HTML for the document
-htmlreg(model_test_controls_2_robust, file = "Table8.html", 
+htmlreg(model_test_controls_2_robust, file = "Table8.html", # Naming the file
         digits = 2,, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
         custom.model.names = c("Table 8 - Model 2 Fixed heteroskedasticity"),  #Naming the table
         include.rsquared = TRUE ) # Include in the table the R^2
 
-# Model without 'finish_in4_yrs'
+# Model without 'finish_in_4_yrs'
 model_test_controls_3 =  lm(first_sem_grade ~ sfp_offer + 
                               ssp_offer + HS_GPA + age + 
                               female + english , data)
 
 # Output model to html for the document
-htmlreg(model_test_controls_3, file = "Table9.html", 
+htmlreg(model_test_controls_3, file = "Table9.html", # Naming the file
         digits = 2, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
         custom.model.names = c("Table 9 - Model 3"), # Naming the table
         include.rsquared = TRUE ) # Include in the table the R^2 
@@ -236,15 +239,19 @@ white_test(model_test_controls_3)
 model_test_controls_3_robust = coeftest(model_test_controls_3, 
                                         vcov = vcovHC(model_test_controls_2, type = "HC1"))
 
-htmlreg(model_test_controls_3_robust, file = "Table10.html", digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 10 - Model 3 Fixed heteroskedasticity"), include.rsquared = TRUE )
-summary(model_test_controls_3)
+htmlreg(model_test_controls_3_robust, file = "Table10.html", # Naming the file
+        digits = 2, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
+        custom.model.names = c("Table 10 - Model 3 Fixed heteroskedasticity"), # Naming the table
+        include.rsquared = TRUE ) # Include in the table the R^2 
 
 # We observe a bit lower st.d and higher R2, p-value close to 0.1
 # Decision to keep 'finish_in4_yrs' based on statistical and theoretical rationale in document
  
 # Check covariance of coefficients
 print(vcov(model_test_controls_2))
-stargazer(vcov(model_test_controls_2)[2:8, 2:8], type = "text", title = "Table 11: vcov-matrix 2_2", out = "Table11.html")
+stargazer(vcov(model_test_controls_2)[2:8, 2:8], # Choose covariance variables to observe
+          type = "text", title = "Table 11: vcov-matrix 2_2", # Naming the table
+          out = "Table11.html") # Naming the file
 
 # Robust standard errors in the model
 robust_se_2 = vcovHC(model_test_controls_2, type = "HC1")
@@ -262,7 +269,7 @@ linearHypothesis(model_test_controls_2, c(
 
 ### The effects of all variables are significantly not 0 together, and so are relevant and can be kept in the model ###
 
-mode_controls = coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))
+model_controls = coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1")) # We will save the fixed model for Q7
 
 # --- QUESTION 6 (P3Q6) --------------------------------
 
@@ -282,8 +289,6 @@ white_test(model4)
 linearHypothesis(model4, c("sfp_offer =0", "ssp_offer = 0"))
 
 
-summary(model4)
-
 # Define model for GPA over year2
 model5 = lm(GPA_year2 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
 
@@ -296,10 +301,46 @@ linearHypothesis(model5, c("sfp_offer =0", "ssp_offer = 0"), vcov. =  vcovHC(mod
 
 # Create summary table of treatment effects
 affects_table = 
-  rbind(Treatment = c("SFP", "std. Error" , "SSP",  "std. Error" ), 
-        Fall_Semester = c(unname(model_test_controls_2$coefficients[2]),   mode_controls[2, "Std. Error"] , unname(model_test_controls_2$coefficients[3]), mode_controls[3, "Std. Error"]  ),
-        Year_1 = c(unname(model4$coefficients[2]), summary(model4)$coefficients[2, "Std. Error"], unname(model4$coefficients[3]),  summary(model4)$coefficients[3, "Std. Error"]),
-        Year_2 = c(unname(model5$coefficients[2]), model5_robust[1, "Std. Error"] , unname(model5$coefficients[3]), model5_robust[1, "Std. Error"]))
+  rbind(
+        Fall_Semester = c(unname(model_test_controls_2$coefficients[2]),
+                          model_controls[2, "Std. Error"],
+                          (1- pt(
+                            abs(unname(model_test_controls_2$coefficients[2])/model_controls[2, "Std. Error"]), 
+                            summary(model_test_controls_2)$df[2])
+                           )*2 , 
+                          unname(model_test_controls_2$coefficients[3]), 
+                          model_controls[3, "Std. Error"],  
+                          (1- pt(
+                            abs(unname(model_test_controls_2$coefficients[3])/model_controls[3, "Std. Error"]), 
+                            summary(model_test_controls_2)$df[2]))*2),
+        Year_1 = c(unname(model4$coefficients[2]), 
+                   summary(model4)$coefficients[2, "Std. Error"], 
+                   (1- pt(
+                     abs(unname(model4$coefficients[2])/summary(model4)$coefficients[2, "Std. Error"]), 
+                     summary(model4)$df[2])
+                   )*2 ,
+                   unname(model4$coefficients[3]),
+                   summary(model4)$coefficients[3, "Std. Error"],
+                   (1- pt(
+                     abs(unname(model4$coefficients[3])
+                     /summary(model4)$coefficients[3, "Std. Error"]), 
+                     summary(model4)$df[2])
+                   )*2 ),
+        Year_2 = c(unname(model5$coefficients[2]), 
+                   model5_robust[2, "Std. Error"] , 
+                   (1- pt(
+                    abs( unname(model5$coefficients[2])
+                     /model5_robust[2, "Std. Error"]), 
+                     summary(model5)$df[2])
+                   )*2 ,
+                   unname(model5$coefficients[3]), 
+                   model5_robust[3, "Std. Error"],
+                   (1- pt(
+                     abs(unname(model5$coefficients[3])
+                     /model5_robust[3, "Std. Error"]), 
+                     summary(model5)$df[2])
+                   )*2 ))
+colnames(affects_table) <- c("SFP", "std. Error" , "P-val" , "SSP",  "std. Error " , "P-val " )
 
 # Output table to html for the document
 stargazer(affects_table, type = "text", title = "Table 12: Affects over time_Table",  out = "Table12.html")
@@ -316,14 +357,14 @@ model_q8 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med*sfp_offer , P3Q8_
 
 # Check for heteroskedasticity
 white_test(model_q8)
-# homoscedasticity is NOT preserved
+# homoscedasticity is preserved when rounding down
 model_q8_robust = coeftest(model_q8, vcov = vcovHC(model5, type = "HC1"))
 
 # Hypothesis testing for interaction term
 linearHypothesis(model_q8, c("sfp_offer:abv_med  = 0"), robust = TRUE)
 
 # Output model to html
-htmlreg(model_q8_robust, file = "Table13.html", custom.columns = c("Intercept", "Dummy variable for belonging to SFP group", "Dummy variable for having HS GPA above median", "Interaction dummy variable"),
+htmlreg(model_q8, file = "Table13.html", custom.columns = c("Intercept", "Dummy variable for belonging to SFP group", "Dummy variable for having HS GPA above median", "Interaction dummy variable"),
         digits = 2, stars = c(0.001, 0.05,0.1), custom.model.names = c("Table 13: How SFP Effects grades for students with or without GPA above median"), include.rsquared = TRUE )
 
 
