@@ -7,7 +7,7 @@ library("car")
 library("stargazer")
 library("texreg")
 library(broom)
-library("lfe")
+library(lfe)
 data <- read.csv("term_paper_data.csv")
 #check commit
 data[, c(4, 2)]
@@ -147,9 +147,9 @@ linearHypothesis(model_q82, c("abv_med_sfp_offer = 0"))
 #############################################################
 
 #Q9
-filtered_data = filter(data, sfp_offer == 1 | control == 1 )
-mean_accepted = colMeans(filter(filtered_data, sfp_signup == 1 & sfp_offer == 1))
-mean_rejected = colMeans(filter(filtered_data, sfp_signup == 0 & sfp_offer == 1))
+filtered_data = filter(data, sfp_offer == 1 )
+mean_accepted = colMeans(filter(filtered_data, sfp_signup == 1 ))
+mean_rejected = colMeans(filter(filtered_data, sfp_signup == 0))
 names(mean_accepted) = names(data)
 names(mean_rejected) = names(data)
 means_table2 = cbind(mean_rejected, mean_accepted)
@@ -160,25 +160,22 @@ stargazer(means_table2, type = "html", title = "",  out = "means_table2.html")
 
 
 #Q10
-modelq10 = lm(first_sem_grade ~ sfp_signup,filtered_data)
+data_q10 = filter(data, ssp_offer == 0)
+modelq10 = lm(first_sem_grade ~ sfp_signup,data_q10)
 summary(modelq10)
-white_test(modelq10)
-
 
 #Q11
-mod_tsls = felm(formula = first_sem_grade ~ 1 | 0 | (sfp_signup ~ sfp_offer) | 0, data = filtered_data) #############################################################
-summary(mod_tsls$stage1)
-summary(mod_tsls, robust = TRUE)
-
-modelq11p1 = lm(sfp_signup ~ sfp_offer, filtered_data)
+#H0 : cov(sfp_offer,sfp_signup) = 0 
+stargazer(linearHypothesis(modelq11p1, "sfp_offer=0"),type = "html", title = " SFP בדיקת הקסוגניות של ההצעה להשתתף בתכנית  ",  out = "test.html")
+modelq11p1 = lm(sfp_signup ~ sfp_offer, data_q10)
 summary(modelq11p1)
-cov(filtered_data$sfp_offer, filtered_data$sfp_signup)
-#H0 : cov(sfp_offer,sfp_signup) = 0 #############################################################
-linearHypothesis(modekq11p1, "sfp_offer")
-
-
-predicted_signup = predict(modelq11p1)
-modelq11p2 = lm(first_sem_grade ~ predicted_signup, filtered_data)
+#Pvalue is 0, we reject the null hypothesis
+white_test(modelq11p1)
+coeftest(modelq11p1, vcov = vcovHC(modelq11p1, type = "HC1"))
+predicted_signup = fitted.values(modelq11p1)
+modelq11p2 = lm(first_sem_grade ~ predicted_signup, data_q10)
 summary(modelq11p2)
+white_test(modelq11p2)
 stargazer(modelq11p1, type = "html", title = "שלב ראשון",  out = "first step.html")
 stargazer(modelq11p2, type = "html", title = "IV אמידת",  out = "modelq11p2.html")
+
