@@ -1,5 +1,5 @@
 # Load required libraries
-library("ggplot2")   # for data visualization
+library("ggplot2")    # for data visualization
 library("dplyr")      # for data manipulation
 library("lmtest")     # for hypothesis testing
 library("sandwich")   # for heteroskedasticity-robust standard errors
@@ -15,6 +15,10 @@ data <- read.csv("term_paper_data.csv")
 
 # Set options for output formatting
 options(digits = 4, scipen = 999)
+
+### PART 2 - DESCRIPTION OF THE DATA & ALLOCATION BALANCE ###
+########################################################
+# --- PART 2 - QUESTION 3 (P2Q3) --------------------------------
 
 # Filter the data based on treatment groups
 sfp = filter(data, sfp_offer == 1)
@@ -65,21 +69,29 @@ colnames(means_table) = c("descriptions", "SFP", "SSP", "Control") # Rename colu
 # Output the table of means to an HTML file
 stargazer(means_table, type = "text", title = "Table 1: means of groups",  out = "Table1.html")
 
-# --- PART 2 - QUESTION 3 (P2Q3) --------------------------------
+# --- QUESTION 3 (P2Q3) --------------------------------
 # Subset data for specific treatment groups (SSP and Control)
 data_P2Q3 = subset(data, data$ssp_offer == 1 | data$control==1)
 
 # Fit a linear model for the effect of various variables on SSP offer
-model1 = lm(ssp_offer ~ HS_GPA + age + female + english + dad_HS_grad + dad_college_grad 
-            + mom_HS_grad + mom_college_grad + uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans, data_P2Q3)
+model1 = lm(ssp_offer ~ HS_GPA + age + female + english +
+              dad_HS_grad + dad_college_grad + mom_HS_grad + 
+              mom_college_grad + uni_first_choice + 
+              finish_in_4_yrs + grad_degree + live_home + 
+              work_plans, data_P2Q3)
 
 # Model fix for heteroskedasticity 
 model1_fixed = coeftest(model1, vcov = vcovHC(model1, type = "HC1"))
 
 # Output the results to an HTML table
-htmlreg(model1_fixed, file = "Table2.html", custom.columns = c("החותך", descriptions), digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 2: Contrasts by treatment of SSP"), include.rsquared = TRUE)
+htmlreg(model1_fixed, file = "Table2.html",
+        custom.columns = c("החותך", descriptions), # Add descriptions column
+        digits = 2, stars = c(0.01, 0.05, 0.1),    # Check significance for 0.01, 0.05, and 0.1
+        custom.model.names = c("Table 2: Contrasts by treatment of SSP"), # Naming The table
+        include.rsquared = TRUE) # Include in the table the R^2 
 
 # Test the hypothesis that all coefficients are zero
+# That way we prove ssp_offer has nothing to do with background variables
 linearHypothesis(model1, c(
   "HS_GPA = 0",
   "age = 0",
@@ -109,18 +121,30 @@ summary(model2)
 white_test(model2)
 
 # Output model to html for the document.
-htmlreg(model2, file = "Table3.html", custom.columns = c("Intercept", "Dummy variable for belonging to SSP group", "Dummy variable for belonging to SFP group"),
-        digits = 2, , stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 3: Intent of Treatment Effects on First Year Outcomes in the Sample with Fall Grades"), include.rsquared = TRUE )
+htmlreg(model2, file = "Table3.html", 
+        custom.columns = c( #Adding custom column of descriptions of the variables
+          "Intercept",
+          "Dummy variable for belonging to SSP group", 
+          "Dummy variable for belonging to SFP group"),
+        digits = 2, , stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
+        custom.model.names = #Naming the table
+          c("Table 3: Intent of Treatment Effects on First Year Outcomes in the Sample with Fall Grades"),
+        include.rsquared = TRUE ) # Include in the table the R^2 
 
 # --- QUESTION 5 (P3Q5) --------------------------------
 
 # Fit a model with all variables as controls
-
-model_test_controls = lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA + age + female + english + dad_HS_grad + dad_college_grad + mom_HS_grad + mom_college_grad + 
-                           uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans  + last_min +sfp_signup + ssp_signup , data)
+model_test_controls = lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA
+                         + age + female + english + dad_HS_grad + 
+                           dad_college_grad + mom_HS_grad + mom_college_grad + 
+                           uni_first_choice + finish_in_4_yrs + grad_degree + 
+                           live_home + work_plans  + last_min +sfp_signup + ssp_signup , data)
 
 # Output model to html for the document.
-htmlreg(model_test_controls, file = "Table4.html", digits = 2,, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 4 - Model 1"), include.rsquared = TRUE )
+htmlreg(model_test_controls, file = "Table4.html", 
+        digits = 2,, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
+        custom.model.names = c("Table 4 - Model 1"), #Naming the table
+        include.rsquared = TRUE ) # Include in the table the R^2 
 
 # Test for heteroskedasticity
 white_test(model_test_controls)
@@ -135,7 +159,6 @@ robust_se = vcovHC(model_test_controls, type = "HC1")
 htmlreg(model_test_controls_robust, file = "Table5.html", digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 5 - Model 1 with fixed heteroskedasticity") , include.rsquared = TRUE )
 
 # Check for multicollinearity in parental education variables
-print(vcov(model_test_controls)[c(8,9,10,11),c(8,9,10,11)])
 stargazer(vcov(model_test_controls)[c(8,9,10,11),c(8,9,10,11)], type = "text", title = "Table 6: vcov-matrix", out = "Table6.html")
 
 # Test if parental education variables can be jointly zero
@@ -183,22 +206,36 @@ model_test_controls_2_robust = coeftest(model_test_controls_2, vcov = vcovHC(mod
 # Define the covariance and summary functions
 vcov = vcovHC(model_test_controls_2, type = "HC1") ###################!!!!!!!!!!!!!!!!!!!!!!
 
-# Output the model with fixed heteroskedasticity to HTML
-htmlreg(model_test_controls_2, file = "Table7.html", digits = 2,, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 7 - Model 2"), include.rsquared = TRUE )
-htmlreg(model_test_controls_2_robust, file = "Table8.html", digits = 2,, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 8 - Model 2 Fixed heteroskedasticity"), include.rsquared = TRUE )
-summary(model_test_controls_2)
+# Output the model to HTML for the document
+htmlreg(model_test_controls_2, file = "Table7.html", 
+        digits = 2,, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
+        custom.model.names = c("Table 7 - Model 2"), #Naming the table
+        include.rsquared = TRUE )#Include in the table the R^2
+
+# Output the fixed\robust model to HTML for the document
+htmlreg(model_test_controls_2_robust, file = "Table8.html", 
+        digits = 2,, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
+        custom.model.names = c("Table 8 - Model 2 Fixed heteroskedasticity"),  #Naming the table
+        include.rsquared = TRUE ) # Include in the table the R^2
 
 # Model without 'finish_in4_yrs'
-model_test_controls_3 =  lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA + age + female + english , data)
+model_test_controls_3 =  lm(first_sem_grade ~ sfp_offer + 
+                              ssp_offer + HS_GPA + age + 
+                              female + english , data)
+
+# Output model to html for the document
+htmlreg(model_test_controls_3, file = "Table9.html", 
+        digits = 2, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
+        custom.model.names = c("Table 9 - Model 3"), # Naming the table
+        include.rsquared = TRUE ) # Include in the table the R^2 
 
 # Check for heteroskedasticity
 white_test(model_test_controls_3)
 
 # Robust standard errors in the model
-model_test_controls_3_robust = coeftest(model_test_controls_3, vcov = vcovHC(model_test_controls_2, type = "HC1"))
+model_test_controls_3_robust = coeftest(model_test_controls_3, 
+                                        vcov = vcovHC(model_test_controls_2, type = "HC1"))
 
-# Output model to html for the document
-htmlreg(model_test_controls_3, file = "Table9.html", digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 9 - Model 3"), include.rsquared = TRUE )
 htmlreg(model_test_controls_3_robust, file = "Table10.html", digits = 2, stars = c(0.01, 0.05, 0.1), custom.model.names = c("Table 10 - Model 3 Fixed heteroskedasticity"), include.rsquared = TRUE )
 summary(model_test_controls_3)
 
