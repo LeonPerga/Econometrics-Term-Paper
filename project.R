@@ -371,7 +371,7 @@ linearHypothesis(model5, c("sfp_offer =0", "ssp_offer = 0"), vcov. =  vcovHC(mod
 # --- QUESTION 8 (P3Q8) --------------------------------
 
 #Adding dummy variable - 1 if HS GPA is above the median, 0 otherwise
-data["abv_med"] = ifelse(P3Q8_data$HS_GPA > median(P3Q8_data$HS_GPA), 1, 0)
+data["abv_med"] = ifelse(data$HS_GPA > median(data$HS_GPA), 1, 0)
 
 # sub-setting the data to include only students allocated to SFP and Control groups
 P3Q8_data = subset(data, data$sfp_offer == 1 | data$control == 1)
