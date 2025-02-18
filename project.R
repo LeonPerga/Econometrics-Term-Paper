@@ -473,13 +473,26 @@ predicted_signup = predict(modelq11p1)
 
 # Second-stage regression: Estimate the effect of predicted 'sfp_signup' on 'first_sem_grade'
 # This is part of the 2SLS (two-stage least squares) met
+
+# The second-stage regression model uses the predicted values of 'sfp_signup' (from the first stage) as the independent variable
 modelq11p2 = lm(first_sem_grade ~ predicted_signup, filtered_data)
-summary(modelq11p2)
 
-# Output first and second stage results
-stargazer(modelq11p1, type = "html", title = "Table 16: שלב ראשון",  out = "Table16.html")
-stargazer(coeftest(modelq11p1, vcov = vcovHC(modelq11p1, type = "HC1")), type = "html", title = "Table 17: שלב ראשון עם תיקון לשונות",  out = "Table17.html")
-stargazer(modelq11p2, type = "html", title = "Table 18: IV אמידת",  out = "Table18.html")
+# Output first and second stage results using stargazer:
 
-print("Done!")
+# First-stage regression results: outputting the original model (modelq11p1)
+stargazer(modelq11p1,
+          type = "html", 
+          title = "Table 16: שלב ראשון",  # Title in Hebrew for the first stage
+          out = "Table16.html")  # Saves the output to an HTML file
 
+# First-stage regression results with robust standard errors (HC1), correcting for heteroscedasticity
+stargazer(coeftest(modelq11p1, vcov = vcovHC(modelq11p1, type = "HC1")), 
+          type = "html", 
+          title = "Table 17: שלב ראשון עם תיקון לשונות",  # Title in Hebrew for robust standard errors
+          out = "Table17.html") # Saves the output to an HTML file
+
+# Second-stage IV estimation results
+stargazer(modelq11p2, 
+          type = "html", 
+          title = "Table 18: IV אמידת",  # Title in Hebrew for IV estimation results
+          out = "Table18.html") # Saves the output to an HTML file
