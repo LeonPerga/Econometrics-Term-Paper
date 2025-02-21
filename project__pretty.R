@@ -97,7 +97,7 @@ stargazer(white_table, summary = FALSE, type = "html", title = "White Test for H
 
 # Model fix for heteroskedasticity 
 model1_fixed = coeftest(model1, vcov = vcovHC(model1, type = "HC1"))
-print(test)
+
 # Output the results to an HTML table
 htmlreg(model1_fixed, file = "Table2.html", # Naming the file
         custom.columns = c("החותך", descriptions), # Add descriptions column
@@ -159,17 +159,17 @@ htmlreg(model2, file = "Table3.html", # Naming the file
 # --- QUESTION 5 (P3Q5) --------------------------------
 
 # Fit a model with all variables as controls
-model_test_controls = lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA
+model_3 = lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA
                          + age + female + english + dad_HS_grad + dad_college_grad + mom_HS_grad + mom_college_grad +  uni_first_choice + finish_in_4_yrs + grad_degree + live_home + work_plans  + last_min +sfp_signup + ssp_signup , data)
 
 # Output model to html for the document.
-htmlreg(model_test_controls, file = "Table4.html",  # Naming the file
+htmlreg(model_3, file = "Table4.html",  # Naming the file
         digits = 2,, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
         custom.model.names = c("Table 4 - Model 1"), #Naming the table
         include.rsquared = TRUE ) # Include in the table the R^2 
 
 # Perform White's test
-white_test_result <- white_test(model_test_controls)
+white_test_result <- white_test(model_3)
 
 # Extract values
 test_statistic <- white_test_result$w_stat
@@ -182,22 +182,22 @@ white_table = rbind(c("H0: Residuals are homoskedastic\t|", "H1: Heteroskedastic
 stargazer(white_table, summary = FALSE, type = "html", title = "White Test for Heteroskedasticity (model 3) ", out = "white_test_3.html")####################################
 
 # Fix heteroskedasticity using robust standard errors
-model_test_controls_robust = coeftest(model_test_controls, vcov = vcovHC(model_test_controls, type = "HC1"))
+model_3_robust = coeftest(model_3, vcov = vcovHC(model_3, type = "HC1"))
 
 # Robust standard errors in the model
-robust_se = vcovHC(model_test_controls, type = "HC1")
+robust_se = vcovHC(model_3, type = "HC1")
 
 # Output model to html with fixed heteroskedasticity
-htmlreg(model_test_controls_robust, file = "Table5.html", # Naming the file
+htmlreg(model_3_robust, file = "Table5.html", # Naming the file
         digits = 2, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
         custom.model.names = c("Table 5 - Model 1 with fixed heteroskedasticity"), # Naming the table
         include.rsquared = TRUE ) # Include in the table the R^2 
 
 # Check for multicollinearity in parental education variables
-stargazer(vcov(model_test_controls)[c(8,9,10,11),c(8,9,10,11)], type = "text", title = "Table 6: vcov-matrix", out = "Table6.html")
+stargazer(vcov(model_3)[c(8,9,10,11),c(8,9,10,11)], type = "text", title = "Table 6: vcov-matrix", out = "Table6.html")
 
 # Test if parental education variables can be jointly zero
-lh2 <- linearHypothesis(model_test_controls, c(
+lh2 <- linearHypothesis(model_3, c(
   "dad_HS_grad = 0",
   "dad_college_grad = 0",
   "mom_HS_grad = 0",
@@ -219,7 +219,7 @@ stargazer(lh2_df, summary = FALSE, type = "html",
 # Are all the other at least significant together?
 
 # Test the joint significance of non-significant variables
-lh3 <- linearHypothesis(model_test_controls, c(
+lh3 <- linearHypothesis(model_3_robust, c(
   "dad_HS_grad = 0",
   "dad_college_grad = 0",
   "mom_HS_grad = 0",
@@ -246,16 +246,16 @@ stargazer(lh3_df, summary = FALSE, type = "html",
 
 ### They are not significant, so they are most likely irrelevant ###
 ###            Let's see if any variables are correlated         ###
-print(vcov(model_test_controls))
+print(vcov(model_3))
 
 ### No visible covariance between variables ###
 
 # --- New model significant variables only ---
-model_test_controls_2 =  lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
+model_4 =  lm(first_sem_grade ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
 
 
 # Perform White's test
-white_test_result <- white_test(model_test_controls_2)
+white_test_result <- white_test(model_4)
 
 # Extract values ########################
 test_statistic <- white_test_result$w_stat
@@ -268,36 +268,18 @@ white_table = rbind(c("H0: Residuals are homoskedastic\t|", "H1: Heteroskedastic
 stargazer(white_table, summary = FALSE, type = "html", title = "White Test for Heteroskedasticity (model 4) ", out = "white_test_4.html")####################################
 
 # Fix heteroskedasticity using robust standard errors
-model_test_controls_2_robust = coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))
+model_4_robust = coeftest(model_4, vcov = vcovHC(model_4, type = "HC1"))
 
 # Define the covariance and summary functions
-vcov = vcovHC(model_test_controls_2, type = "HC1") ###################!!!!!!!!!!!!!!!!!!!!!!
-
-# Output the model to HTML for the document
-htmlreg(model_test_controls_2, file = "Table7.html", # Naming the file
-        digits = 2,, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
-        custom.model.names = c("Table 7 - Model 2"), #Naming the table
-        include.rsquared = TRUE )#Include in the table the R^2
-
-# Output the fixed\robust model to HTML for the document
-htmlreg(model_test_controls_2_robust, file = "Table8.html", # Naming the file
-        digits = 2,, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
-        custom.model.names = c("Table 8 - Model 2 Fixed heteroskedasticity"),  #Naming the table
-        include.rsquared = TRUE ) # Include in the table the R^2
+vcov = vcovHC(model_4, type = "HC1") ###################!!!!!!!!!!!!!!!!!!!!!!
 
 # Model without 'finish_in_4_yrs'
-model_test_controls_3 =  lm(first_sem_grade ~ sfp_offer + 
+model_4_without_finish_in_4_yrs =  lm(first_sem_grade ~ sfp_offer + 
                               ssp_offer + HS_GPA + age + 
                               female + english , data)
 
-# Output model to html for the document
-htmlreg(model_test_controls_3, file = "Table9.html", # Naming the file
-        digits = 2, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
-        custom.model.names = c("Table 9 - Model 3"), # Naming the table
-        include.rsquared = TRUE ) # Include in the table the R^2 
-
 # Perform White's test
-white_test_result <- white_test(model_test_controls_3)
+white_test_result <- white_test(model_4_without_finish_in_4_yrs)
 
 # Extract values
 test_statistic <- white_test_result$w_stat
@@ -307,30 +289,25 @@ p_value <- white_test_result$p_value
 white_table = rbind(c("H0: Residuals are homoskedastic\t|", "H1: Heteroskedasticity of the residuals"), c("test_statistic", "p_value") , round(c(test_statistic, p_value), 3)) 
 
 # Output the table to a html file for the document 
-stargazer(white_table, summary = FALSE, type = "html", title = "White Test for Heteroskedasticity (model 4 without finish_in_4_yrs) ", out = "white_test_4.5.html")####################################
+stargazer(white_table, summary = FALSE, type = "html", title = "White Test for Heteroskedasticity (model 4 without finish_in_4_yrs) ", out = "white_test_4.5.html")
 
 # Robust standard errors in the model
-model_test_controls_3_robust = coeftest(model_test_controls_3, 
-                                        vcov = vcovHC(model_test_controls_2, type = "HC1"))
-
-htmlreg(model_test_controls_3_robust, file = "Table10.html", # Naming the file
-        digits = 2, stars = c(0.01, 0.05, 0.1), # Check significance for 0.01, 0.05, and 0.1
-        custom.model.names = c("Table 10 - Model 3 Fixed heteroskedasticity"), # Naming the table
-        include.rsquared = TRUE ) # Include in the table the R^2 
+model_4_without_finish_in_4_yrs_robust = coeftest(model_4_without_finish_in_4_yrs, 
+                                        vcov = vcovHC(model_4_without_finish_in_4_yrs, type = "HC1"))
 
 # We observe a bit lower st.d and higher R2, p-value close to 0.1
 # Decision to keep 'finish_in4_yrs' based on statistical and theoretical rationale in document
 
 # Check covariance of coefficients
-stargazer(vcov(model_test_controls_2)[2:8, 2:8], # Choose covariance variables to observe
-          type = "text", title = "Table 11: vcov-matrix 2_2", # Naming the table
-          out = "Table11.html") # Naming the file
+stargazer(vcov(model_4)[2:8, 2:8], # Choose covariance variables to observe
+          type = "text", title = "Table 8: vcov-matrix 2_2", # Naming the table
+          out = "Table8.html") # Naming the file
 
 # Robust standard errors in the model
-robust_se_2 = vcovHC(model_test_controls_2, type = "HC1")
+model_4_robust_se = vcovHC(model_4, type = "HC1")
 
 # Test significance of joint significance of variables
-lh4 <- linearHypothesis(model_test_controls_2, c(
+lh4 <- linearHypothesis(model_4, c(
   "HS_GPA = 0",
   "ssp_offer = 0",
   "sfp_offer = 0",
@@ -338,7 +315,7 @@ lh4 <- linearHypothesis(model_test_controls_2, c(
   "female = 0",
   "english = 0",
   "age = 0"),
-  vcov. = robust_se_2)
+  vcov. = model_4_robust_se)
 
 lh4_df <- as.data.frame(lh4)
 # Optionally, rename columns to more user‐friendly names
@@ -351,24 +328,20 @@ stargazer(lh4_df, summary = FALSE, type = "html",
           out = "HypothesisTable4.html")
 
 # Compute robust standard errors correctly for each model
-se_model1_HC1 <- coeftest(model_test_controls, vcov = vcovHC(model_test_controls, type = "HC1"))[, 2]
-se_model2_HC1 <- coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))[, 2]
-se_model3_HC1 <- coeftest(model_test_controls_3, vcov = vcovHC(model_test_controls_3, type = "HC1"))[, 2]
+se_model1_HC1 <- coeftest(model_3, vcov = vcovHC(model_3, type = "HC1"))[, 2]
+se_model2_HC1 <- coeftest(model_4, vcov = vcovHC(model_4, type = "HC1"))[, 2]
+se_model3_HC1 <- coeftest(model_4_without_finish_in_4_yrs, vcov = vcovHC(model_4_without_finish_in_4_yrs, type = "HC1"))[, 2]
 
-# Stargazer with corrected model names, standard errors, and column labels
-stargazer(model_test_controls, model_test_controls, 
-          model_test_controls_2, model_test_controls_2, 
-          model_test_controls_3, model_test_controls_3)
-
-htmlreg(list(model_test_controls, model_test_controls, 
-             model_test_controls_2, model_test_controls_2, 
-             model_test_controls_3, model_test_controls_3), file = "Table13.html", # Naming the file
+# Nested table of all models.
+htmlreg(list(model_3, model_3, 
+             model_4, model_4, 
+             model_4_without_finish_in_4_yrs, model_4_without_finish_in_4_yrs), file = "Table7.html", # Naming the file
         digits = 4, stars = c(0.001, 0.05,0.1), # Check significance for 0.01, 0.05, and 0.1,
-        caption = "Table 13 models with and without insignificant variables",
+        caption = "Table 7 models with and without insignificant variables",
         caption.above = TRUE,
         custom.header = list("Full model" = 1:2, "Only significant variables" = 3:4, "Without finish_in_4_yrs" = 5:6),
-        custom.model.names = c("Model1", "Model1(HC1)", "Model2", "Model2(HC1)", "Model3", "Model4(HC1)"), # Naming the table
-        override.se =  list(summary(model_test_controls)$coefficients[, 2], se_model1_HC1, summary(model_test_controls_2)$coefficients[, 2], se_model2_HC1, summary(model_test_controls_3)$coefficients[, 2], se_model3_HC1),
+        custom.model.names = c("Normal Sd. Errors", "HC1", "Normal Sd. Errors", "HC1", "Normal Sd. Errors", "HC1"), # Naming the table
+        override.se =  list(summary(model_3)$coefficients[, 2], se_model1_HC1, summary(model_4)$coefficients[, 2], se_model2_HC1, summary(model_4_without_finish_in_4_yrs)$coefficients[, 2], se_model3_HC1),
         include.rsquared = TRUE ) # Include in the table the R^2 
 
 
@@ -376,13 +349,13 @@ htmlreg(list(model_test_controls, model_test_controls,
 
 ### The effects of all variables are significantly not 0 together, and so are relevant and can be kept in the model ###
 
-model_controls = coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1")) # We will save the fixed model for Q7
+model_controls = coeftest(model_4, vcov = vcovHC(model_4, type = "HC1")) # We will save the fixed model for Q7
 
 # --- QUESTION 6 (P3Q6) --------------------------------
 
 # The null hypothesis H0: ssp_signup = sfp_signup
 # The alternative hypothesis H1 : ssp_signup != sfp_signup
-lh5 <- linearHypothesis(model_test_controls_2, c("sfp_offer = ssp_offer"), vcov. = robust_se_2)
+lh5 <- linearHypothesis(model_4, c("sfp_offer = ssp_offer"), vcov. = model_4_robust_se)
 
 lh5_df <- as.data.frame(lh5)
 # Optionally, rename columns to more user‐friendly names
@@ -402,10 +375,10 @@ stargazer(lh5_df, summary = FALSE, type = "html",
 # We already have model_controls for the first semester
 
 # Define model for GPA over year1
-model6 = lm(GPA_year1 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
+model_5 = lm(GPA_year1 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
 
 # Perform White's test
-white_test_result <- white_test(model6)
+white_test_result <- white_test(model_5)
 
 # Extract values
 test_statistic <- white_test_result$w_stat
@@ -418,10 +391,10 @@ white_table = rbind(c("H0: Residuals are homoskedastic\t|", "H1: Heteroskedastic
 stargazer(white_table, summary = FALSE, type = "html", title = "White Test for Heteroskedasticity (model 6) ", out = "white_test_6.html")####################################
 
 # Define model for GPA over year2
-model7 = lm(GPA_year2 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
+model_6 = lm(GPA_year2 ~ sfp_offer + ssp_offer + HS_GPA +age + female + english + finish_in_4_yrs, data)
 
 # Perform White's test
-white_test_result <- white_test(model7)
+white_test_result <- white_test(model_6)
 
 # Extract values
 test_statistic <- white_test_result$w_stat
@@ -433,20 +406,20 @@ white_table = rbind(c("H0: Residuals are homoskedastic\t|", "H1: Heteroskedastic
 # Output the table to a html file for the document 
 stargazer(white_table, summary = FALSE, type = "html", title = "White Test for Heteroskedasticity (model 7) ", out = "white_test_7.html")####################################
 
-model7_robust = coeftest(model7, vcov = vcovHC(model5, type = "HC1"))
+model_6_robust_se = coeftest(model_6, vcov = vcovHC(model_6, type = "HC1"))
 
 # Output all 3 models to a html file for the document 
-stargazer(model_test_controls_2, model6, model7,
-          se = list(coeftest(model_test_controls_2, vcov = vcovHC(model_test_controls_2, type = "HC1"))[, 2] ,summary(model4)$coefficients[, 2], coeftest(model5, vcov = vcovHC(model5, type = "HC1"))[, 2]),
+stargazer(model_4, model_5, model_6,
+          se = list(coeftest(model_4, vcov = vcovHC(model_4, type = "HC1"))[, 2] ,summary(model_5)$coefficients, coeftest(model_6, vcov = vcovHC(model_6, type = "HC1"))[, 2]),
           type = "html", 
           column.labels = c("Semester", "year1", "year 2"), # Model names
-          title = "Table 12: Affects over time_Table",  # Title in Hebrew for IV estimation results
-          out = "Table12.html") # Saves the output to an HTML file
+          title = "Table 9: Affects over time_Table",  # Title in Hebrew for IV estimation results
+          out = "Table9.html") # Saves the output to an HTML file
 
 #The variables are not significant after the first semester, but are they significant together?
 
 # Are the variables significant together after year 2?
-lh6_1 <- linearHypothesis(model_test_controls_2, c("sfp_offer =0", "ssp_offer = 0"), vcov. =  vcovHC(model_test_controls_2, type = "HC1"))
+lh6_1 <- linearHypothesis(model_4, c("sfp_offer =0", "ssp_offer = 0"), vcov. =  vcovHC(model_4, type = "HC1"))
 # No
 
 # Rename rows to model names
@@ -459,7 +432,7 @@ stargazer(lh6_1_df,  summary = FALSE, type = "html",
           out = "HypothesisTable6_1.html")
 
 # Are the variables significant together after year 1?
-lh6_2 <- linearHypothesis(model6, c("sfp_offer =0", "ssp_offer = 0"))
+lh6_2 <- linearHypothesis(model_5, c("sfp_offer =0", "ssp_offer = 0"))
 # No
 
 lh6_2_df <- as.data.frame(lh6_2)
@@ -473,7 +446,7 @@ stargazer(lh6_2_df,  summary = FALSE, type = "html",
 
 
 # Are the variables significant together after year 2?
-lh6_3 <- linearHypothesis(model7, c("sfp_offer =0", "ssp_offer = 0"), vcov. =  vcovHC(model5, type = "HC1"))
+lh6_3 <- linearHypothesis(model_6, c("sfp_offer =0", "ssp_offer = 0"), vcov. =  vcovHC(model_6, type = "HC1"))
 # No
 
 lh6_3_df <- as.data.frame(lh6_3)
@@ -497,14 +470,14 @@ data["abv_med"] = ifelse(data$HS_GPA > median(data$HS_GPA), 1, 0)
 P3Q8_data = subset(data, data$sfp_offer == 1 | data$control == 1)
 
 # Interaction model for students above median HS GPA
-model_q8 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med*sfp_offer , P3Q8_data)
+mdoel_7 = lm(first_sem_grade ~ sfp_offer + abv_med  + abv_med*sfp_offer , P3Q8_data)
 
 # Check for heteroskedasticity
-white_test(model_q8)
+white_test(mdoel_7)
 # homoscedasticity is NOT preserved when rounding down
 
 # Hypothesis testing for interaction term
-lh7 <- linearHypothesis(model_q8, c("sfp_offer:abv_med  = 0"))
+lh7 <- linearHypothesis(mdoel_7, c("sfp_offer:abv_med  = 0"))
 
 lh7_df <- as.data.frame(lh7)
 # Optionally, rename columns to more user‐friendly names
@@ -517,12 +490,12 @@ stargazer(lh7_df,  summary = FALSE, type = "html",
 
 
 # Output model to html
-htmlreg(model_q8, file = "Table13.html", # Naming the file
+htmlreg(mdoel_7, file = "Table10.html", # Naming the file
         custom.columns = #Adding custom column of descriptions of the variables
           c("Intercept", "Dummy variable for belonging to SFP group", 
             "Dummy variable for having HS GPA above median", "Interaction dummy variable"),
         digits = 2, stars = c(0.001, 0.05,0.1), # Check significance for 0.01, 0.05, and 0.1
-        custom.model.names = c("Table 13: How SFP Effects grades for students with or without GPA above median"), # Naming the table
+        custom.model.names = c("Table 10: How SFP Effects grades for students with or without GPA above median"), # Naming the table
         include.rsquared = TRUE ) # Include in the table the R^2 
 
 
@@ -561,8 +534,8 @@ colnames(means_table2)=c("rejected the sfp program","accpted the sfp program")
 
 # Use stargazer to generate a formatted table in HTML format
 stargazer(means_table2, type = "html", 
-          title = "Table 14: Differances between backgrounds variables in acceptance and rejection subsets",  # Naming the table
-          out = "Table14.html") # Naming the file
+          title = "Table 11: Differances between backgrounds variables in acceptance and rejection subsets",  # Naming the table
+          out = "Table11.html") # Naming the file
 
 # --- QUESTION 10 (P4Q10) --------------------------------
 # Filter the data for students who received SFP offer or no offer at all, in other words
@@ -570,13 +543,13 @@ stargazer(means_table2, type = "html",
 data_q10 = filter(data, ssp_offer == 0)
 
 # Fit a linear regression model to estimate the effect of "sfp_signup" on "first_sem_grade"
-modelq10 = lm(first_sem_grade ~ sfp_signup,data_q10)
+model_8 = lm(first_sem_grade ~ sfp_signup,data_q10)
 
 # Perform the White test for heteroscedasticity
-white_test(modelq10)
+white_test(model_8)
 
 # Perform White's test
-white_test_result <- white_test(modelq10)
+white_test_result <- white_test(model_8)
 
 # Extract values
 test_statistic <- white_test_result$w_stat
@@ -586,24 +559,24 @@ p_value <- white_test_result$p_value
 testable = rbind(c("H0: Residuals are homoskedastic\t|", "H1: Heteroskedasticity of the residuals"), c("test_statistic", "p_value") , round(c(test_statistic, p_value), 3)) 
 
 # Output the table to a html file for the document 
-stargazer(testable, summary = FALSE, type = "html", title = "White Test for Heteroskedasticity, ", out = "table25.html")####################################
+stargazer(testable, summary = FALSE, type = "html", title = "White Test for Heteroskedasticity, model (8)", out = "white_test_8.html")
 
 # Create a table summarizing the results of the regression in HTML format using stargazer
-stargazer(modelq10, 
+stargazer(model_8, 
           type = "html", 
-          title = "Table 15: אמידת ההשפעה של השתתפות הטיפול על ממוצע הציונים",  # Naming the table
-          out = "Table15.html") # Naming the file
+          title = "Table 12: אמידת ההשפעה של השתתפות הטיפול על ממוצע הציונים",  # Naming the table
+          out = "Table12.html") # Naming the file
 
 
 # --- QUESTION 11 (P4Q11) --------------------------------
 
 # First-stage regression: Estimate the effect of 'sfp_offer' on 'sfp_signup
-modelq11p1 = lm(sfp_signup ~ sfp_offer, filtered_data)
+model_9 = lm(sfp_signup ~ sfp_offer, filtered_data)
 
 # We expect heteroskedasticity because this model is a LPM model
 # Therefore, we use the White test to check for heteroscedasticity
 # Perform White's test
-white_test_result <- white_test(modelq11p1)
+white_test_result <- white_test(model_9)
 
 # Extract values
 test_statistic <- white_test_result$w_stat
@@ -619,7 +592,7 @@ stargazer(white_table, summary = FALSE, type = "html", title = "White Test for H
 # Now we test the estimator for 'sfp_offer' to check if the covariance between 'sfp_offer' and 'sfp_signup' exists
 # Null hypothesis (H0): sfp_offer coefficient = 0 (no relationship)
 # Alternative hypothesis (H1): sfp_offer coefficient != 0 (there is a relationship)
-lh8 <- linearHypothesis(modelq11p1, "sfp_offer", vcov = vcovHC(modelq11p1, type = "HC1")) #H0 : sfp_offer = 0 | H1 : sfp_offer != 0
+lh8 <- linearHypothesis(model_9, "sfp_offer", vcov = vcovHC(model_9, type = "HC1")) #H0 : sfp_offer = 0 | H1 : sfp_offer != 0
 # Create a custom line to add to the stargazer table
 lh8_df <- as.data.frame(lh8)
 
@@ -634,24 +607,24 @@ stargazer(lh8_df, summary = FALSE, type = "html",
 
 
 # Use the first-stage model to predict the values of 'sfp_signup'
-predicted_signup = predict(modelq11p1)
+predicted_signup = predict(model_9)
 
 # Second-stage regression: Estimate the effect of predicted 'sfp_signup' on 'first_sem_grade'
 # This is part of the 2SLS (two-stage least squares) met
 
 # The second-stage regression model uses the predicted values of 'sfp_signup' (from the first stage) as the independent variable
-modelq11p2 = lm(first_sem_grade ~ predicted_signup, filtered_data)
+model_10 = lm(first_sem_grade ~ predicted_signup, filtered_data)
 
-coeftest(modelq11p1, vcov = vcovHC(modelq11p1, type = "HC1"))
-# Calculate HC1 robust standard errors for modelq11p1
-robust_se <- list(sqrt(diag(vcovHC(modelq11p1, type = "HC1"))))
+coeftest(model_9, vcov = vcovHC(model_9, type = "HC1"))
+# Calculate HC1 robust standard errors for model_9
+robust_se <- list(sqrt(diag(vcovHC(model_9, type = "HC1"))))
 
 
 # Output the 2sls first stage and second stage models to a html file for the document 
 
-stargazer(modelq11p2, modelq11p1, modelq11p1,
-          se = list(summary(modelq11p2)$coefficients[, 2],summary(modelq11p1)$coefficients[, 2], coeftest(modelq11p1, vcov = vcovHC(modelq11p1, type = "HC1"))[, 2]),
+stargazer(model_10, model_9, model_9,
+          se = list(summary(model_10)$coefficients[, 2],summary(model_9)$coefficients[, 2], coeftest(model_9, vcov = vcovHC(model_9, type = "HC1"))[, 2]),
           type = "html", 
           column.labels = c("2nd Stage", "1st Stage", "1st Stage (HC1)"), # Model names
-          title = "Table 11: IV אמידת",  # Title in Hebrew for IV estimation results
-          out = "Table11.html") # Saves the output to an HTML file
+          title = "Table 12: IV אמידת",  # Title in Hebrew for IV estimation results
+          out = "Table12.html") # Saves the output to an HTML file
